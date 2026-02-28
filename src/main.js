@@ -1,10 +1,9 @@
 
 import './style.css';
-import { initGallery } from './gallery3d.js';
+import { initPresentation } from './presentation.js';
 
-document.querySelector('#app').innerHTML = `
-  <div id="main-container"></div>
-`;
+const app = document.querySelector('#app');
+app.innerHTML = `<div id="main-container"></div>`;
 
-// Initialize the 3D Gallery
-initGallery(document.querySelector('#main-container'));
+initPresentation(document.querySelector('#main-container'));
+
