@@ -13,9 +13,18 @@ const SC = [
 // Sub-slides of the same subject share the same sceneId (same 3D objects),
 // but orbit that scene from a different camPos/lookAt → "same scene, new angle".
 const SLIDES = [
-    // ① L'ère des plugins ─────────────────────────────────────────────────────
     {
         sceneId: 0, subjectNum: 1, tot: 1, idx: 1,
+        subject: "Introduction",
+        title: "Vue d'ensemble",
+        subtitle: "Plan de présentation",
+        bullets: ["L’ère des plugins avant WebGL", "L'arrivée de WebGL", "La révolution de WebGPU", "Three.js", "L'avenir de l'écosystème"], // Nouvelle propriété
+        color: '#00ff00', hex: 0x00ff00,
+        cam: new THREE.Vector3(10, 15, -120), look: new THREE.Vector3(10, 1, -150)
+    },
+    // ① L'ère des plugins ─────────────────────────────────────────────────────
+    {
+        sceneId: 0, subjectNum: 2, tot: 1, idx: 2,
         subject: "L'ère des plugins avant WebGL",
         title: "L'ère des plugins",
         subtitle: "Flash · Silverlight · Java Applets — le web 3D avant 2011",
@@ -134,6 +143,7 @@ let scrollT = 0;   // current smoothed T on curve
 let targetT = 0;   // scroll destination
 let activeSlide = -1;
 let hudDots = [];
+let hudBullets;
 let hudSubjectLine, hudTitle, hudSubtitle, hudSubProgress, hudProgress;
 let sceneGroups = new Map(); // sceneId → THREE.Group
 
@@ -650,6 +660,10 @@ function buildHUD(container) {
     hudSubProgress.className = 'pres-sub-progress';
     block.appendChild(hudSubProgress);
 
+    hudBullets = document.createElement('ul');
+    hudBullets.className = 'pres-bullets';
+    block.appendChild(hudBullets);
+
     // Dots — grouped by subject
     const dotsWrap = document.createElement('div');
     dotsWrap.className = 'pres-dots';
@@ -695,6 +709,7 @@ function updateHUD(slideIndex, force = false) {
 
     hudSubtitle.textContent = slide.subtitle;
 
+    // Sub-slide progress pill
     if (slide.tot > 1) {
         hudSubProgress.textContent = `${slide.idx} / ${slide.tot}`;
         hudSubProgress.style.borderColor = slide.color + '66';
@@ -702,6 +717,16 @@ function updateHUD(slideIndex, force = false) {
         hudSubProgress.style.display = 'inline-block';
     } else {
         hudSubProgress.style.display = 'none';
+    }
+
+    // Bullet points
+    hudBullets.innerHTML = '';
+    if (slide.bullets && slide.bullets.length > 0) {
+        slide.bullets.forEach(text => {
+            const li = document.createElement('li');
+            li.textContent = text;
+            hudBullets.appendChild(li);
+        });
     }
 
     hudDots.forEach((dot, i) => dot.classList.toggle('active', i === slideIndex));
