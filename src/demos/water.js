@@ -86,15 +86,6 @@ export async function mount(container) {
     const WIDTH = 256; // Simulation Grid Size
     const COUNT = WIDTH * WIDTH;
 
-    // Buffers for Height and Velocity (Double Buffered effectively via logic or separate buffers if needed)
-    // Actually, distinct buffers for Height(t) and Height(t-1) or Velocity logic.
-    // Standard Shallow Water:
-    // v += (h_neighbor - h_self) * speed
-    // h += v
-
-    // We need 2 buffers for Height (Current, Next) to avoid race conditions? 
-    // Or just 1 Velocity and 1 Height if we accept some artifacts. 
-    // Let's use 2 Height buffers for stability + 1 Velocity.
 
     // Initial data
     const heightArray = new Float32Array(COUNT);
