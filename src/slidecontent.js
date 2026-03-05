@@ -94,7 +94,7 @@ const SLIDE_COPY = [
 // ─── PER-SLIDE POSITION ANCHORS ───────────────────────────────────────────────
 // side: 'left' | 'right'
 // top: CSS value for vertical placement
-// align (for right side): panel aligns to the right
+
 const POSITIONS = [
     { side: 'left', top: '12%' },  // 0  Plugin Era
     { side: 'left', top: '18%' },  // 1  WebGL arrival
