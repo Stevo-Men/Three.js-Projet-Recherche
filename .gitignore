@@ -22,3 +22,5 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+src/models/3d-abstract-shape-icon-chrome-y2k-metal-texture/*
