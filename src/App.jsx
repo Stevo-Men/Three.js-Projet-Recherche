@@ -43,7 +43,7 @@ export default function App() {
 
     return (
         <>
-            <Experience activeSlide={activeSlide} SLIDES={SLIDES} />
+            <Experience activeSlide={activeSlide} />
             <HUD activeSlide={activeSlide} />
 
             {/* Mini Progress HUD */}

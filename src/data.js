@@ -19,114 +19,130 @@ export const HX = {
 
 export const SLIDES = [
     {
-        sceneId: 0, subjectNum: 0, tot: 2, idx: 1,
+        sceneId: 0, subjectNum: 0, tot: 1, idx: 1,
         subject: "Plan de la présentation", title: "Sommaire",
         subtitle: "Les grandes étapes du Web 3D",
-        color: P.sommaire, hx: HX.sommaire
+        color: P.sommaire, hx: HX.sommaire,
+        bodyPos: null
     },
     {
-        sceneId: 0, subjectNum: 1, tot: 2, idx: 2,
+        sceneId: 1, subjectNum: 1, tot: 1, idx: 1,
         subject: "L'ère des plugins", title: "L'ère des plugins",
         subtitle: "Flash · Silverlight · Java Applets — le web 3D avant 2011",
-        color: P.plugin, hx: HX.plugin
+        color: P.plugin, hx: HX.plugin,
+        bodyPos: [-4, -1.5, 1]
     },
 
     {
-        sceneId: 1, subjectNum: 2, tot: 3, idx: 1,
+        sceneId: 2, subjectNum: 2, tot: 3, idx: 1,
         subject: "L'avènement de WebGL", title: "L'avènement de WebGL",
         subtitle: "Un accès GPU standardisé, sans installation",
-        color: P.webgl, hx: HX.webgl
+        color: P.webgl, hx: HX.webgl,
+        bodyPos: [-4, -1.5, 1]
     },
     {
-        sceneId: 1, subjectNum: 2, tot: 3, idx: 2,
+        sceneId: 2, subjectNum: 2, tot: 3, idx: 2,
         subject: "L'avènement de WebGL", title: "Le pipeline de rendu",
         subtitle: "De la géométrie aux pixels : le voyage des données",
-        color: P.webgl, hx: HX.webgl
+        color: P.webgl, hx: HX.webgl,
+        bodyPos: [-4, -1.5, 1]
     },
     {
-        sceneId: 1, subjectNum: 2, tot: 3, idx: 3,
-        subject: "L'avènement de WebGL", title: "Un nouveau paradigme",
-        subtitle: "Du code propriétaire aux standards open-source",
-        color: P.webgl, hx: HX.webgl
+        sceneId: 2, subjectNum: 2, tot: 3, idx: 3,
+        subject: "L'avènement de WebGL", title: "Li limite",
+        subtitle: "",
+        color: P.webgl, hx: HX.webgl,
+        bodyPos: [-4, -1.5, 1]
     },
 
     {
-        sceneId: 2, subjectNum: 3, tot: 1, idx: 1,
+        sceneId: 3, subjectNum: 3, tot: 1, idx: 1,
         subject: "La révolution de WebGPU", title: "La révolution de WebGPU",
         subtitle: "Compute shaders, accès bas niveau — le GPU sans contrainte",
-        color: P.webgpu, hx: HX.webgpu
+        color: P.webgpu, hx: HX.webgpu,
+        bodyPos: [-4, -1.5, 1]
     },
 
     {
-        sceneId: 3, subjectNum: 4, tot: 4, idx: 1,
+        sceneId: 4, subjectNum: 4, tot: 4, idx: 1,
         subject: "Three.js", title: "Three.js",
         subtitle: "L'abstraction WebGL open-source la plus utilisée au monde",
-        color: P.three, hx: HX.three
+        color: P.three, hx: HX.three,
+        bodyPos: [-4, -1.5, 1]
     },
     {
-        sceneId: 3, subjectNum: 4, tot: 4, idx: 2,
+        sceneId: 4, subjectNum: 4, tot: 4, idx: 2,
         subject: "Three.js", title: "Shaders",
         subtitle: "Reprendre le contrôle via des matériaux custom",
-        color: P.three, hx: HX.three
+        color: P.three, hx: HX.three,
+        bodyPos: [-4, -1.5, 1]
     },
     {
-        sceneId: 3, subjectNum: 4, tot: 4, idx: 3,
+        sceneId: 4, subjectNum: 4, tot: 4, idx: 3,
         subject: "Three.js", title: "Code",
         subtitle: "Scene, Camera, Renderer — Les 3 piliers de l'API",
-        color: P.three, hx: HX.three
+        color: P.three, hx: HX.three,
+        bodyPos: [-4, -1.5, 1]
     },
     {
-        sceneId: 3, subjectNum: 4, tot: 4, idx: 4,
+        sceneId: 4, subjectNum: 4, tot: 4, idx: 4,
         subject: "Three.js", title: "L'écosystème",
         subtitle: "React Three Fiber, Babylon, A-Frame, PlayCanvas...",
-        color: P.three, hx: HX.three
+        color: P.three, hx: HX.three,
+        bodyPos: [-4, -1.5, 1]
     },
 
     {
-        sceneId: 4, subjectNum: 5, tot: 3, idx: 1,
+        sceneId: 5, subjectNum: 5, tot: 3, idx: 1,
         subject: "L'avenir de l'écosystème", title: "Un web en mutation",
         subtitle: "IA générative 3D, outils no-code, web implicite",
-        color: P.avenir, hx: HX.avenir
+        color: P.avenir, hx: HX.avenir,
+        bodyPos: [-4, -1.5, 1]
     },
     {
-        sceneId: 4, subjectNum: 5, tot: 3, idx: 2,
+        sceneId: 5, subjectNum: 5, tot: 3, idx: 2,
         subject: "L'avenir de l'écosystème", title: "Les limites actuelles",
         subtitle: "Complexité d'accès, adoption fragmentée, debugging difficile",
-        color: P.avenir, hx: HX.avenir
+        color: P.avenir, hx: HX.avenir,
+        bodyPos: [-4, -1.5, 1]
     },
     {
-        sceneId: 4, subjectNum: 5, tot: 3, idx: 3,
+        sceneId: 5, subjectNum: 5, tot: 3, idx: 3,
         subject: "L'avenir de l'écosystème", title: "WebXR",
         subtitle: "AR & VR natives dans le navigateur — sans installation",
-        color: P.avenir, hx: HX.avenir
+        color: P.avenir, hx: HX.avenir,
+        bodyPos: [-4, -1.5, 1]
     }
 ];
 
 // Per-scene Camera Anchors
 export const SCENE_CAMS = [
-    // 0: Plugin Era
+    // 0: Sommaire
     [
-        { pos: [0, 1.5, 6.5], target: [0, 0, 0] },
+        { pos: [0, 0, 8.5], target: [0, 0, 0] }
+    ],
+    // 1: Plugin Era
+    [
         { pos: [0, 0, 5], target: [0, 0, 0] }
     ],
-    // 1: WebGL (tot: 3)
+    // 2: WebGL (tot: 3)
     [
         { pos: [0, 0.5, 6], target: [0, 0, 0] },
         { pos: [1.5, -0.5, 4.5], target: [0, -0.2, 0] },
         { pos: [-1.2, 0.8, 5.2], target: [0, 0, 0] },
     ],
-    // 2: WebGPU (tot: 1)
+    // 3: WebGPU (tot: 1)
     [
         { pos: [0, 0.2, 5.5], target: [0, 0.2, 0] }
     ],
-    // 3: Three.js (tot: 4)
+    // 4: Three.js (tot: 4)
     [
         { pos: [0, 0, 8], target: [0, 0, 0] },
         { pos: [1.8, 1.2, 6], target: [0, 0, 0] },
         { pos: [-2, -1, 5.5], target: [0, 0, 0] },
         { pos: [0, 2.5, 6.5], target: [0, 0, 0] },
     ],
-    // 4: L'avenir (tot: 3)
+    // 5: L'avenir (tot: 3)
     [
         { pos: [0, 0, 5.5], target: [0, 0, 0] },
         { pos: [1.5, 0.5, 4.5], target: [0, 0, 0] },
@@ -138,37 +154,79 @@ export const SLIDE_COPY = [
     // 0 - Plan
     {
         eyebrow: 'SOMMAIRE',
-        body: `1. L'ère des plugins\n2. L'avènement de WebGL\n3. La révolution de WebGPU\n4. L'écosystème Three.js\n5. Un web en mutation`,
+        body: `1. L'ère des plugins\n
+        2. L'avènement de WebGL\n
+        3. La révolution de WebGPU\n
+        4. L'écosystème Three.js\n
+        5. Un web en mutation`,
         cta: null,
     },
     // 1 – Plugin Era
     {
         eyebrow: 'LE WEB 3D AVANT 2011',
-        body: `Flash, Silverlight et Java Applets étaient les seuls\nmoyens d'afficher du 3D dans un navigateur.\n\nCes plugins propriétaires imposaient des installations\nmanuelles, des failles de sécurité récurrentes et une\ndépendance totale à des éditeurs tiers.`,
+        body: `L'ère des plugins\n\n• Adobe Flash (via Stage3D), Unity Web Player ou VRML\n
+        • L'utilisateur devait télécharger et mettre à jour le plugin.\n
+        • Failles critiques constantes\n• Non supporté sur mobile\n\n
+        Le rendu logiciel\n\n
+        • Dessin pixel par pixel via le CPU (Canvas 2D ou Applets Java).\n
+        • Calculer la position, la lumière et la couleur de chaque pixel un par un.\n
+        • Performances catastrophiques (< 15 FPS)\n
+        • Graphismes limités au "Fil de fer" (Wireframe) ou couleurs plates`,
         cta: null,
     },
     // 1 – WebGL arrival
     {
         eyebrow: 'UN TOURNANT POUR LE WEB',
-        body: `En 2011, WebGL apporte le rendu GPU directement dans\nle navigateur — sans plugin, sans installation.\n\nLe standard, issu de OpenGL ES 2.0, offre pour la\npremière fois un accès natif au pipeline graphique\nvia une simple balise <canvas>.`,
-        cta: 'SPECIFICATION W3C →',
+        body: `ORIGINE\n
+            • Dérivé d'OpenGL ES 2.0 par le Khronos Group (2011).\n
+            ROLE\n
+            • API JavaScript de bas niveau\n
+            • sert de pont direct et sécurisé entre la page web et la carte graphique de l'utilisateur.\n
+            CONCEPT\n
+            • Transformer des vecteurs mathématiques (triangles) en une grille de pixels.`,
+        cta: null,
     },
     // 2 – Pipeline
     {
         eyebrow: 'DU CODE AU PIXEL',
-        body: `Le pipeline WebGL transforme des données 3D en pixels\naffichés à l'écran en plusieurs étapes discrètes.\n\nChaque étape est programmable via des shaders GLSL —\nde petits programmes qui s'exécutent directement\nsur le GPU, en parallèle massif.`,
+        body: `
+        CPU (Séquentiel) : Le Cerveau
+
+        • Gère la logique, les calculs complexes et l'état global.
+        • Envoie des instructions de haut niveau au GPU.
+
+        GPU (Parallèle) : Les ouvriers
+
+        • Spécialisé dans le calcul matriciel en parallèle.
+        • Exécute des milliers de calculs simples simultanément.`,
         cta: null,
     },
     // 3 – Transition
     {
-        eyebrow: 'LA FIN DES SILOS PROPRIÉTAIRES',
-        body: `WebGL marque le passage d'un web contrôlé par des\nentreprises à un web gouverné par des standards ouverts.\n\nW3C, Khronos Group et les éditeurs de navigateurs\nconvergent pour la première fois autour d'une API\ngraphique commune et libre.`,
+        eyebrow: 'La limite',
+        body: `
+        Le problème : Les "Draw Calls" (Appels de dessin).
+
+        • Pour dessiner 1 objet, le CPU doit parler au GPU.\n
+        • Pour dessiner 10 000 objets, le CPU sature, même si le GPU dort.`,
         cta: null,
     },
     // 4 – WebGPU
     {
         eyebrow: 'AU-DELÀ DU RENDU',
-        body: `WebGPU expose le GPU dans sa totalité — pas uniquement\npour le rendu, mais pour le calcul généraliste (GPGPU).\n\nCompute shaders, pipelines asynchrones, accès mémoire\nexplicite : WebGPU s'aligne sur Metal, Vulkan et D3D12\npour offrir des performances proches du natif.`,
+        body: `WebGPU expose le GPU dans sa totalité — pas uniquement\npour le rendu, mais pour le calcul généraliste(GPGPU).\n\n
+        Compute shaders, pipelines asynchrones, accès mémoire\n
+        explicite: WebGPU s'aligne sur Metal, Vulkan et D3D12\n
+        pour offrir des performances proches du natif.
+        1. Réduction de l'Overhead (La surcouche)
+WebGL : Un vieux traducteur lourd.
+WebGPU : Parle la langue native des GPU modernes (Vulkan, Metal, DirectX 12). L'envoi des commandes est immédiat.
+2. Multithreading
+3. Les Compute Shaders
+WebGL : Le CPU doit préparer tous les "Draw Calls" sur un seul fil d'exécution (le Main Thread).
+WebGPU : Permet d'utiliser les Web Workers pour préparer les commandes 3D sur plusieurs cœurs du processeur en même temps.
+WebGL : Le GPU est bridé. Il ne sait que dessiner des pixels (Graphics Pipeline).
+WebGPU : Le GPU peut faire du calcul générique (Compute Pipeline). Exemples : simulation de fluides, intelligence artificielle, ou collisions complexes de millions de particules.`,
         cta: 'SPEC WEBGPU →',
     },
     // 5 – Three.js

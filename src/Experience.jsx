@@ -1,49 +1,32 @@
 import React, { useRef } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
-import { Environment } from '@react-three/drei';
+import { Text } from '@react-three/drei';
 import * as THREE from 'three';
+import { SommaireScene } from './scenes/SommaireScene';
 import { PluginScene } from './scenes/PluginScene';
 import { WebGLScene } from './scenes/WebGLScene';
 import { WebGPUScene } from './scenes/WebGPUScene';
 import { ThreeJSScene } from './scenes/ThreeJSScene';
 import { AvenirScene } from './scenes/AvenirScene';
-import { SCENE_CAMS } from './data';
+import { SCENE_CAMS, SLIDES, SLIDE_COPY } from './data';
 
-// Helper component to manage the camera lerping based on active slide
-function CameraManager({ activeSlide, SLIDES }) {
+const BODY_FONT = '/fonts/nord-minimal/Web Fonts/NORD-Regular.woff';
+
+// ─── Camera Manager ──────────────────────────────────────────────────────────
+function CameraManager({ activeSlide }) {
     const vec = new THREE.Vector3();
     const targetVec = new THREE.Vector3();
 
     useFrame((state) => {
-        // 1. Find which scene we are in
         const slide = SLIDES[activeSlide];
         const sceneId = slide.sceneId;
-
-        // 2. Base X offset for this scene (Spacing is 10 units per scene)
         const activeBaseX = sceneId * 10;
-
-        // 3. Find the specific camera anchor for this slide
-        // idx is 1-based, so idx - 1 is the array index
         const anchor = SCENE_CAMS[sceneId][slide.idx - 1] || SCENE_CAMS[sceneId][0];
 
-        // 4. Calculate desired position
-        const destX = activeBaseX + anchor.pos[0];
-        const destY = anchor.pos[1];
-        const destZ = anchor.pos[2];
-
-        // Calculate desired lookAt target
-        const targX = activeBaseX + anchor.target[0];
-        const targY = anchor.target[1];
-        const targZ = anchor.target[2];
-
-        // Lerp camera position
-        vec.set(destX, destY, destZ);
+        vec.set(activeBaseX + anchor.pos[0], anchor.pos[1], anchor.pos[2]);
         state.camera.position.lerp(vec, 0.05);
 
-        // Lerp camera lookAt (by moving the scene around the camera technically, or just looking)
-        targetVec.set(targX, targY, targZ);
-
-        // Smooth lookAt by storing current look target
+        targetVec.set(activeBaseX + anchor.target[0], anchor.target[1], anchor.target[2]);
         if (!state.camera.userData.target) {
             state.camera.userData.target = new THREE.Vector3(0, 0, 0);
         }
@@ -54,7 +37,67 @@ function CameraManager({ activeSlide, SLIDES }) {
     return null;
 }
 
-// Optional background particles
+// ─── Slide-driven 3D body text ───────────────────────────────────────────────
+// Position is read from SLIDES[activeSlide].bodyPos (local scene offset).
+// Adjust bodyPos per slide in data.js to freely reposition the text block.
+function SlideBody3D({ activeSlide }) {
+    const groupRef = useRef();
+    const targetPos = useRef(new THREE.Vector3());
+
+    useFrame(() => {
+        if (!groupRef.current) return;
+        const slide = SLIDES[activeSlide];
+        if (!slide?.bodyPos) {
+            groupRef.current.visible = false;
+            return;
+        }
+        const worldX = slide.sceneId * 10 + slide.bodyPos[0];
+        targetPos.current.set(worldX, slide.bodyPos[1], slide.bodyPos[2]);
+        groupRef.current.position.lerp(targetPos.current, 0.08);
+        groupRef.current.visible = true;
+    });
+
+    const slide = SLIDES[activeSlide];
+    const copy = SLIDE_COPY[activeSlide];
+    if (!slide?.bodyPos || !copy?.body) return null;
+
+    return (
+        <group ref={groupRef}>
+            {/* Title */}
+            <Text
+                position={[0, 0.55, 0]}
+                fontSize={0.22}
+                color={slide.hx}
+                anchorX="left"
+                font={BODY_FONT}
+                maxWidth={5}
+            >
+                {slide.title}
+            </Text>
+
+            {/* Divider */}
+            <mesh position={[2.5, 0.35, 0]}>
+                <planeGeometry args={[5, 0.004]} />
+                <meshBasicMaterial color="#ffffff" transparent opacity={0.2} />
+            </mesh>
+
+            {/* Body */}
+            <Text
+                position={[0, 0.1, 0]}
+                fontSize={0.11}
+                color="#ffffff"
+                anchorX="left"
+                font={BODY_FONT}
+                maxWidth={5}
+                lineHeight={1.7}
+            >
+                {copy.body}
+            </Text>
+        </group>
+    );
+}
+
+// ─── Background Dust ──────────────────────────────────────────────────────────
 function BackgroundDust() {
     const pointsRef = useRef();
     const { positions } = React.useMemo(() => {
@@ -70,9 +113,7 @@ function BackgroundDust() {
     }, []);
 
     useFrame((state, delta) => {
-        if (pointsRef.current) {
-            pointsRef.current.rotation.y += delta * 0.02;
-        }
+        if (pointsRef.current) pointsRef.current.rotation.y += delta * 0.02;
     });
 
     return (
@@ -85,8 +126,8 @@ function BackgroundDust() {
     );
 }
 
-
-export function Experience({ activeSlide, SLIDES }) {
+// ─── Experience ───────────────────────────────────────────────────────────────
+export function Experience({ activeSlide }) {
     return (
         <Canvas
             camera={{ position: [0, 0, 8], fov: 45 }}
@@ -94,20 +135,15 @@ export function Experience({ activeSlide, SLIDES }) {
         >
             <ambientLight intensity={0.5} />
 
-            {/* 
-         In your original code, the scene was black. 
-         If you need to ensure lighting looks okay, consider <Environment preset="city" /> 
-         but for wireframes, BasicMaterial is used so light isn't strictly necessary.
-      */}
-
-            <CameraManager activeSlide={activeSlide} SLIDES={SLIDES} />
+            <CameraManager activeSlide={activeSlide} />
             <BackgroundDust />
 
-            <PluginScene />    {/* at x: 0 */}
-            <WebGLScene />     {/* at x: 10 */}
-            <WebGPUScene />    {/* at x: 20 */}
-            <ThreeJSScene />   {/* at x: 30 */}
-            <AvenirScene />    {/* at x: 40 */}
+            <SommaireScene />  {/* at x: 0 */}
+            <PluginScene />    {/* at x: 10 */}
+            <WebGLScene activeSlide={activeSlide} />     {/* at x: 20 */}
+            <WebGPUScene />    {/* at x: 30 */}
+            <ThreeJSScene />   {/* at x: 40 */}
+            <AvenirScene />    {/* at x: 50 */}
 
         </Canvas>
     );

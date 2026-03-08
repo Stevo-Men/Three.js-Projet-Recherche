@@ -4,7 +4,7 @@ import * as THREE from 'three';
 import { SLIDES } from '../data';
 
 export function AvenirScene() {
-    const hx = SLIDES[9].hx;
+    const hx = SLIDES[10].hx;
     const groupRef = useRef();
 
     useFrame((state, delta) => {
@@ -19,7 +19,7 @@ export function AvenirScene() {
     });
 
     return (
-        <group position={[40, 0, 0]} ref={groupRef}>
+        <group position={[50, 0, 0]} ref={groupRef}>
             {[0, 1, 2, 3].map(i => (
                 <mesh key={i}>
                     <torusGeometry args={[1.5 + i * 0.8, 0.02, 16, 100]} />

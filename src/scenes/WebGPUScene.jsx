@@ -4,7 +4,7 @@ import * as THREE from 'three';
 import { SLIDES } from '../data';
 
 export function WebGPUScene() {
-    const hx = SLIDES[4].hx;
+    const hx = SLIDES[5].hx;
     const groupRef = useRef();
 
     const boxes = React.useMemo(() => {
@@ -43,7 +43,7 @@ export function WebGPUScene() {
     });
 
     return (
-        <group position={[20, -1, 0]} ref={groupRef}>
+        <group position={[30, -1, 0]} ref={groupRef}>
             {boxes.map((b, i) => (
                 <mesh
                     key={i}

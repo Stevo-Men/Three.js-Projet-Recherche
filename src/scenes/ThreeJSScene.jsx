@@ -4,7 +4,7 @@ import * as THREE from 'three';
 import { SLIDES } from '../data';
 
 export function ThreeJSScene() {
-    const hx = SLIDES[5].hx;
+    const hx = SLIDES[6].hx;
     const coreRef = useRef();
     const orbitGroupRef = useRef();
 
@@ -49,7 +49,7 @@ export function ThreeJSScene() {
     });
 
     return (
-        <group position={[30, 0, 0]}>
+        <group position={[40, 0, 0]}>
             {/* Core Gem */}
             <mesh ref={coreRef}>
                 <octahedronGeometry args={[2, 0]} />

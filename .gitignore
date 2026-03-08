@@ -24,3 +24,4 @@ dist-ssr
 *.sw?
 
 src/models/3d-abstract-shape-icon-chrome-y2k-metal-texture/*
+public/fonts/*
