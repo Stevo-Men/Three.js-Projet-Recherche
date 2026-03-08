@@ -4,10 +4,9 @@ import * as THREE from 'three';
 import { SLIDES } from '../data';
 
 export function PluginScene() {
-    const hx = SLIDES[0].hx;
+    const hx = SLIDES[1].hx;
     const groupRef = useRef();
 
-    // Broken / Glitched boxes
     const boxes = React.useMemo(() => {
         const items = [];
         const matBroken = new THREE.MeshBasicMaterial({ color: hx, wireframe: true, transparent: true, opacity: 0.15 });
@@ -16,7 +15,6 @@ export function PluginScene() {
         for (let i = 0; i < 45; i++) {
             const isSolid = Math.random() > 0.8;
             const s = isSolid ? 0.05 + Math.random() * 0.1 : 0.2 + Math.random() * 0.6;
-
             items.push({
                 position: [
                     (Math.random() - 0.5) * 8,
@@ -40,7 +38,6 @@ export function PluginScene() {
     useFrame((state, delta) => {
         if (groupRef.current) {
             groupRef.current.children.forEach((child, i) => {
-                // Slowly drift them
                 child.rotation.x += boxes[i].speedX * delta;
                 child.rotation.y += boxes[i].speedY * delta;
             });
@@ -48,7 +45,7 @@ export function PluginScene() {
     });
 
     return (
-        <group ref={groupRef}>
+        <group ref={groupRef} position={[10, 0, 0]}>
             {boxes.map((b, i) => (
                 <mesh
                     key={i}
