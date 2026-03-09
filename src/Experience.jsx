@@ -2,6 +2,13 @@ import React, { useRef } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { Text } from '@react-three/drei';
 import * as THREE from 'three';
+import {
+    EffectComposer, Bloom, DepthOfField,
+    ChromaticAberration, Glitch, Outline,
+    SMAA, Vignette, Selection,
+} from '@react-three/postprocessing';
+import { BlendFunction, GlitchMode } from 'postprocessing';
+
 import { SommaireScene } from './scenes/SommaireScene';
 import { PluginScene } from './scenes/PluginScene';
 import { WebGLScene } from './scenes/WebGLScene';
@@ -38,8 +45,6 @@ function CameraManager({ activeSlide }) {
 }
 
 // ─── Slide-driven 3D body text ───────────────────────────────────────────────
-// Position is read from SLIDES[activeSlide].bodyPos (local scene offset).
-// Adjust bodyPos per slide in data.js to freely reposition the text block.
 function SlideBody3D({ activeSlide }) {
     const groupRef = useRef();
     const targetPos = useRef(new THREE.Vector3());
@@ -63,7 +68,6 @@ function SlideBody3D({ activeSlide }) {
 
     return (
         <group ref={groupRef}>
-            {/* Title */}
             <Text
                 position={[0, 0.55, 0]}
                 fontSize={0.22}
@@ -75,13 +79,11 @@ function SlideBody3D({ activeSlide }) {
                 {slide.title}
             </Text>
 
-            {/* Divider */}
             <mesh position={[2.5, 0.35, 0]}>
                 <planeGeometry args={[5, 0.004]} />
                 <meshBasicMaterial color="#ffffff" transparent opacity={0.2} />
             </mesh>
 
-            {/* Body */}
             <Text
                 position={[0, 0.1, 0]}
                 fontSize={0.11}
@@ -126,8 +128,47 @@ function BackgroundDust() {
     );
 }
 
+// ─── Post Effects (conditionally active on ThreeJS slides only) ───────────────
+function PostEffects({ fx, isThreeJS }) {
+    if (!isThreeJS) return null;
+
+    return (
+        <EffectComposer>
+            {fx.smaa && <SMAA />}
+            {fx.bloom && <Bloom luminanceThreshold={0.15} intensity={2.2} mipmapBlur />}
+            {fx.dof && <DepthOfField focusDistance={0.025} focalLength={0.06} bokehScale={4} />}
+            {fx.chromatic && (
+                <ChromaticAberration
+                    blendFunction={BlendFunction.NORMAL}
+                    offset={new THREE.Vector2(0.004, 0.004)}
+                />
+            )}
+            {fx.glitch && (
+                <Glitch
+                    delay={new THREE.Vector2(0.4, 1.0)}
+                    duration={new THREE.Vector2(0.1, 0.25)}
+                    strength={new THREE.Vector2(0.1, 0.25)}
+                    mode={GlitchMode.SPORADIC}
+                />
+            )}
+            {fx.outline && (
+                <Outline
+                    blur
+                    visibleEdgeColor={0xffaa00}
+                    hiddenEdgeColor={0x443300}
+                    edgeStrength={6}
+                    width={800}
+                />
+            )}
+            {fx.vignette && <Vignette eskil={false} offset={0.45} darkness={0.75} />}
+        </EffectComposer>
+    );
+}
+
 // ─── Experience ───────────────────────────────────────────────────────────────
-export function Experience({ activeSlide }) {
+export function Experience({ activeSlide, activeEffects }) {
+    const isThreeJS = SLIDES[activeSlide]?.sceneId === 4;
+
     return (
         <Canvas
             camera={{ position: [0, 0, 8], fov: 45 }}
@@ -138,13 +179,16 @@ export function Experience({ activeSlide }) {
             <CameraManager activeSlide={activeSlide} />
             <BackgroundDust />
 
-            <SommaireScene />  {/* at x: 0 */}
-            <PluginScene />    {/* at x: 10 */}
-            <WebGLScene activeSlide={activeSlide} />     {/* at x: 20 */}
-            <WebGPUScene />    {/* at x: 30 */}
-            <ThreeJSScene />   {/* at x: 40 */}
-            <AvenirScene />    {/* at x: 50 */}
+            <Selection>
+                <SommaireScene />
+                <PluginScene />
+                <WebGLScene activeSlide={activeSlide} />
+                <WebGPUScene />
+                <ThreeJSScene activeEffects={activeEffects} />
+                <AvenirScene />
 
+                <PostEffects fx={activeEffects} isThreeJS={isThreeJS} />
+            </Selection>
         </Canvas>
     );
 }

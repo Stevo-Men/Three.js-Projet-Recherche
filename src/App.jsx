@@ -4,9 +4,24 @@ import { HUD } from './HUD';
 import { Experience } from './Experience';
 import './style.css';
 
+const INITIAL_EFFECTS = {
+    bloom: false,
+    dof: false,
+    chromatic: false,
+    glitch: false,
+    outline: false,
+    smaa: false,
+    vignette: false,
+};
+
 export default function App() {
     const [activeSlide, setActiveSlide] = useState(0);
     const [wheelLock, setWheelLock] = useState(false);
+    const [activeEffects, setActiveEffects] = useState(INITIAL_EFFECTS);
+
+    const toggleEffect = useCallback((key) => {
+        setActiveEffects(prev => ({ ...prev, [key]: !prev[key] }));
+    }, []);
 
     const nudge = useCallback((dir) => {
         if (wheelLock) return;
@@ -21,7 +36,7 @@ export default function App() {
 
     useEffect(() => {
         const handleWheel = (e) => {
-            e.preventDefault(); // Might need to be passive: false if attached purely via DOM, but standard React onWheel works too
+            e.preventDefault();
             if (Math.abs(e.deltaY) < 20) return;
             nudge(e.deltaY > 0 ? 1 : -1);
         };
@@ -31,7 +46,6 @@ export default function App() {
             if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') nudge(-1);
         };
 
-        // Attach non-passive wheel listener for preventDefault to work properly over the canvas
         window.addEventListener('wheel', handleWheel, { passive: false });
         window.addEventListener('keydown', handleKey);
 
@@ -43,12 +57,11 @@ export default function App() {
 
     return (
         <>
-            <Experience activeSlide={activeSlide} />
-            <HUD activeSlide={activeSlide} />
+            <Experience activeSlide={activeSlide} activeEffects={activeEffects} />
+            <HUD activeSlide={activeSlide} activeEffects={activeEffects} toggleEffect={toggleEffect} />
 
             {/* Mini Progress HUD */}
             <div id="hud-progress" style={{ width: `${((activeSlide + 1) / SLIDES.length) * 100}%` }}></div>
-
         </>
     );
 }

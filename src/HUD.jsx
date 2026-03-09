@@ -2,17 +2,96 @@ import React, { useEffect, useState } from 'react';
 import { SLIDES, SLIDE_COPY, POSITIONS } from './data';
 import './style.css';
 
-export function HUD({ activeSlide }) {
+// ─── Effects config ────────────────────────────────────────────────────────────
+const EFFECTS = [
+    { key: 'bloom', label: 'Bloom', desc: 'Luminous glow on bright areas' },
+    { key: 'dof', label: 'Depth of Field', desc: 'Bokeh lens blur' },
+    { key: 'chromatic', label: 'Chromatic', desc: 'RGB channel split' },
+    { key: 'glitch', label: 'Glitch', desc: 'Digital signal corruption' },
+    { key: 'outline', label: 'Outline', desc: 'Edge detection on geometry' },
+    { key: 'smaa', label: 'Antialiasing', desc: 'SMAA edge smoothing' },
+    { key: 'vignette', label: 'Vignette', desc: 'Cinematic edge darkening' },
+];
+
+// ─── Effects Panel ─────────────────────────────────────────────────────────────
+function EffectsPanel({ activeEffects, toggleEffect, accentColor }) {
+    return (
+        <div style={{
+            position: 'fixed',
+            bottom: '32px',
+            right: 'clamp(80px, 7vw, 110px)',
+            zIndex: 60,
+            pointerEvents: 'all',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '6px',
+            alignItems: 'flex-end',
+        }}>
+            <div style={{
+                fontFamily: 'JetBrains Mono, monospace',
+                fontSize: '0.52rem',
+                fontWeight: 400,
+                letterSpacing: '0.22em',
+                textTransform: 'uppercase',
+                color: 'rgba(255,255,255,0.28)',
+                marginBottom: '4px',
+            }}>
+                Post-Processing
+            </div>
+
+            {EFFECTS.map(({ key, label, desc }) => {
+                const active = activeEffects[key];
+                return (
+                    <button
+                        key={key}
+                        onClick={() => toggleEffect(key)}
+                        title={desc}
+                        style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '10px',
+                            background: 'none',
+                            border: 'none',
+                            cursor: 'pointer',
+                            padding: '4px 0',
+                            fontFamily: 'JetBrains Mono, monospace',
+                            fontSize: '0.62rem',
+                            fontWeight: active ? 600 : 300,
+                            letterSpacing: '0.12em',
+                            textTransform: 'uppercase',
+                            color: active ? accentColor : 'rgba(255,255,255,0.32)',
+                            transition: 'color 0.2s ease',
+                            justifyContent: 'flex-end',
+                        }}
+                    >
+                        {label}
+                        <span style={{
+                            display: 'inline-block',
+                            width: '7px',
+                            height: '7px',
+                            flexShrink: 0,
+                            background: active ? accentColor : 'transparent',
+                            border: `1px solid ${active ? accentColor : 'rgba(255,255,255,0.2)'}`,
+                            transition: 'background 0.2s ease, border-color 0.2s ease',
+                            boxShadow: active ? `0 0 6px ${accentColor}` : 'none',
+                        }} />
+                    </button>
+                );
+            })}
+        </div>
+    );
+}
+
+// ─── Main HUD ──────────────────────────────────────────────────────────────────
+export function HUD({ activeSlide, activeEffects, toggleEffect }) {
     const [isVisible, setIsVisible] = useState(false);
     const [content, setContent] = useState(null);
 
     useEffect(() => {
         if (activeSlide < 0 || activeSlide >= SLIDES.length) return;
 
-        // Hide current
         setIsVisible(false);
 
-        // Swap content and reveal after CSS transition
         const timer = setTimeout(() => {
             setContent({
                 slide: SLIDES[activeSlide],
@@ -20,7 +99,7 @@ export function HUD({ activeSlide }) {
                 pos: POSITIONS[activeSlide] || { side: 'left', top: '20%' },
             });
             setIsVisible(true);
-        }, 260); // match old CSS fade out
+        }, 260);
 
         return () => clearTimeout(timer);
     }, [activeSlide]);
@@ -30,8 +109,8 @@ export function HUD({ activeSlide }) {
     const { slide, copy, pos } = content;
     const isRight = pos.side === 'right';
     const color = slide.color;
-    // We'll format color to hex string if it's a number
     const hexColor = typeof color === 'number' ? `#${color.toString(16).padStart(6, '0')}` : color;
+    const isThreeJS = slide.sceneId === 4;
 
     const panelClasses = `sc-panel ${isRight ? 'sc-right' : 'sc-left'} ${isVisible ? 'sc-visible' : 'sc-hidden'}`;
 
@@ -99,6 +178,15 @@ export function HUD({ activeSlide }) {
                     )}
                 </div>
             </div>
+
+            {/* Effects panel — visible only on ThreeJS slides */}
+            {isThreeJS && (
+                <EffectsPanel
+                    activeEffects={activeEffects}
+                    toggleEffect={toggleEffect}
+                    accentColor={hexColor}
+                />
+            )}
         </div>
     );
 }
