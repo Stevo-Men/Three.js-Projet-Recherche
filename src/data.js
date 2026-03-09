@@ -137,10 +137,10 @@ export const SCENE_CAMS = [
     ],
     // 4: Three.js (tot: 4)
     [
-        { pos: [0, 0, 8], target: [0, 0, 0] },
-        { pos: [1.8, 1.2, 6], target: [0, 0, 0] },
-        { pos: [-2, -1, 5.5], target: [0, 0, 0] },
-        { pos: [0, 2.5, 6.5], target: [0, 0, 0] },
+        { pos: [0, 1.5, 7], target: [0, -0.5, 0] },
+        { pos: [0, 1.5, 7], target: [0, -0.5, 0] },
+        { pos: [0, 1.5, 7], target: [0, -0.5, 0] },
+        { pos: [0, 1.5, 7], target: [0, -0.5, 0] },
     ],
     // 5: L'avenir (tot: 3)
     [
@@ -215,25 +215,30 @@ export const SLIDE_COPY = [
     {
         eyebrow: 'AU-DELÀ DU RENDU',
         body: `WebGPU expose le GPU dans sa totalité — pas uniquement\npour le rendu, mais pour le calcul généraliste(GPGPU).\n\n
-        Compute shaders, pipelines asynchrones, accès mémoire\n
-        explicite: WebGPU s'aligne sur Metal, Vulkan et D3D12\n
-        pour offrir des performances proches du natif.
-        1. Réduction de l'Overhead (La surcouche)
-WebGL : Un vieux traducteur lourd.
-WebGPU : Parle la langue native des GPU modernes (Vulkan, Metal, DirectX 12). L'envoi des commandes est immédiat.
-2. Multithreading
-3. Les Compute Shaders
-WebGL : Le CPU doit préparer tous les "Draw Calls" sur un seul fil d'exécution (le Main Thread).
-WebGPU : Permet d'utiliser les Web Workers pour préparer les commandes 3D sur plusieurs cœurs du processeur en même temps.
-WebGL : Le GPU est bridé. Il ne sait que dessiner des pixels (Graphics Pipeline).
-WebGPU : Le GPU peut faire du calcul générique (Compute Pipeline). Exemples : simulation de fluides, intelligence artificielle, ou collisions complexes de millions de particules.`,
+        1. Réduction de l'Overhead (La surcouche)\n
+            WebGL : Doit traduire les commandes pour le GPU. \n
+            WebGPU : Parle la langue native des GPU modernes (Vulkan, Metal, DirectX 12). L'envoi des commandes est immédiat.\n
+        2. Le Multithreading 
+            WebGL : force le CPU à préparer les commandes sur un seul fil (Main Thread). \n
+            WebGPU : répartit ce travail sur tous les cœurs du processeur.\n
+        3. Les Compute Shaders\n
+            WebGL : Le GPU ne sait que colorier des pixels.\n
+            WebGPU : Le GPU se transforme en supercalculateur autonome (simulation de fluides, IA, collisions).\n
+       
+            `,
         cta: 'SPEC WEBGPU →',
     },
     // 5 – Three.js
     {
         eyebrow: 'L\'ABSTRACTION DE RÉFÉRENCE',
-        body: `Three.js encapsule la complexité de WebGL derrière une\nAPI orientée objet claire et expressive.\n\nCréé par Ricardo Cabello en 2010, il est aujourd'hui\nutilisé par des millions de développeurs et de projets\nallant du dataviz à la création artistique.`,
-        cta: 'THREEJS.ORG →',
+        body: `Three.js encapsule la complexité de WebGL derrière une\nAPI orientée objet claire et expressive.\n\n
+        Créé par Ricardo Cabello en 2010, il est maintenant la norme pour le développement 3D sur le web.\n
+        1. Scene : L'univers. C'est un conteneur vide dans lequel on va placer nos objets, nos lumières et nos particules.
+
+        2. Camera : L'œil de l'utilisateur. C'est elle qui définit la perspective, le champ de vision (FOV) et ce qui est visible ou non à l'écran.
+
+        3. Renderer : Le moteur. C'est lui qui prend la Scène et la Caméra, et fait le sale boulot de traduire tout ça en commandes WebGL pour dessiner les pixels sur le <canvas> HTML.`,
+        cta: null,
     },
     // 6 – Vertex / Fragment
     {
