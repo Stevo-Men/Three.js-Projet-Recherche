@@ -1,71 +1,50 @@
 import React, { useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
+import { useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
 import { SLIDES } from '../data';
 
 export function ThreeJSScene() {
     const hx = SLIDES[6].hx;
-    const coreRef = useRef();
-    const orbitGroupRef = useRef();
+    const groundRef = useRef();
 
-    const orbitMeshes = React.useMemo(() => {
-        const items = [];
-        const colors = [0xffaa00, 0xbb44ff, 0x00ff88, 0xff3366]; // Three, WebGPU, WebGL, Plugin
+    // Load the GLTF model. This requires the model to be in public/models/car_lowpoly/
+    const { scene } = useGLTF('/models/car_lowpoly/scene.gltf');
 
-        for (let i = 0; i < 12; i++) {
-            const mat = new THREE.MeshBasicMaterial({
-                color: colors[i % colors.length],
-                wireframe: true,
-                transparent: true,
-                opacity: 0.3
-            });
-
-            items.push({
-                position: [
-                    (Math.random() - 0.5) * 8,
-                    (Math.random() - 0.5) * 8,
-                    (Math.random() - 0.5) * 8
-                ],
-                type: i % 3,
-                material: mat
-            });
-        }
-        return items;
-    }, []);
-
+    // Grid size is 20, divided into 40 segments -> 0.5 per segment
+    // We animate until 0.5 and snap back to 0 for a seamless loop
     useFrame((state, delta) => {
-        if (coreRef.current) {
-            coreRef.current.rotation.x += delta * 0.15;
-            coreRef.current.rotation.y += delta * 0.2;
-        }
-        if (orbitGroupRef.current) {
-            orbitGroupRef.current.rotation.y += delta * 0.05;
-            orbitGroupRef.current.rotation.z += delta * 0.02;
-            orbitGroupRef.current.children.forEach(child => {
-                child.rotation.x += delta * 0.5;
-                child.rotation.y += delta * 0.5;
-            });
+        if (groundRef.current) {
+            // Adjust axis (x or y) based on the car's facing direction to simulate moving forward
+            // The plane is rotated -Math.PI/2 on X, so its local Y is global Z, and local X is global X
+            groundRef.current.position.x -= delta * 5.0; // Moving along its local Y (global Z)
+
+            // Seamless wrap at segment boundary (0.5)
+            if (groundRef.current.position.x <= -0.5) {
+                groundRef.current.position.x += 0.5;
+            }
         }
     });
 
     return (
-        <group position={[40, 0, 0]}>
-            {/* Core Gem */}
-            <mesh ref={coreRef}>
-                <octahedronGeometry args={[2, 0]} />
-                <meshBasicMaterial color={hx} wireframe={true} transparent opacity={0.6} />
-            </mesh>
-
-            {/* Orbiting Ecosystem */}
-            <group ref={orbitGroupRef}>
-                {orbitMeshes.map((m, i) => (
-                    <mesh key={i} position={m.position} material={m.material}>
-                        {m.type === 0 && <boxGeometry args={[0.5, 0.5, 0.5]} />}
-                        {m.type === 1 && <tetrahedronGeometry args={[0.6, 0]} />}
-                        {m.type === 2 && <torusGeometry args={[0.4, 0.1, 8, 16]} />}
+        <group position={[40, -1, 0]}>
+            <group>
+                {/* Wireframe Ground Plane inside a clipping/offset group */}
+                <group position={[0, -0.5, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+                    <mesh ref={groundRef}>
+                        <planeGeometry args={[20, 20, 40, 40]} />
+                        <meshBasicMaterial color={hx} wireframe={true} transparent opacity={0.15} />
                     </mesh>
-                ))}
+                </group>
+
+                {/* Car Model (Side angle) */}
+                <group rotation={[0, 0, 0]}>
+                    <primitive object={scene} scale={[0.3, 0.3, 0.3]} position={[1, 0, 0]} />
+                </group>
             </group>
         </group>
     );
 }
+
+// Preload the model so it's ready when the scene mounts
+useGLTF.preload('/models/car_lowpoly/scene.gltf');
