@@ -64,28 +64,42 @@ export const SLIDES = [
     },
 
     {
-        sceneId: 4, subjectNum: 4, tot: 4, idx: 1,
+        sceneId: 4, subjectNum: 4, tot: 6, idx: 1,
         subject: "Three.js", title: "Three.js",
         subtitle: "L'abstraction WebGL open-source la plus utilisée au monde",
         color: P.three, hx: HX.three,
         bodyPos: [-4, -1.5, 1]
     },
     {
-        sceneId: 4, subjectNum: 4, tot: 4, idx: 2,
+        sceneId: 4, subjectNum: 4, tot: 6, idx: 2,
         subject: "Three.js", title: "Shaders",
         subtitle: "Reprendre le contrôle via des matériaux custom",
         color: P.three, hx: HX.three,
         bodyPos: [-4, -1.5, 1]
     },
     {
-        sceneId: 4, subjectNum: 4, tot: 4, idx: 3,
+        sceneId: 4, subjectNum: 4, tot: 6, idx: 3,
         subject: "Three.js", title: "Code",
         subtitle: "Scene, Camera, Renderer — Les 3 piliers de l'API",
         color: P.three, hx: HX.three,
         bodyPos: [-4, -1.5, 1]
     },
     {
-        sceneId: 4, subjectNum: 4, tot: 4, idx: 4,
+        sceneId: 4, subjectNum: 4, tot: 6, idx: 4,
+        subject: "Three.js", title: "Matériaux",
+        subtitle: "Donner vie aux géométries",
+        color: P.three, hx: HX.three,
+        bodyPos: [-4, -1.5, 1]
+    },
+    {
+        sceneId: 4, subjectNum: 4, tot: 6, idx: 5,
+        subject: "Three.js", title: "Lumières",
+        subtitle: "Éclairer la scène avec réalisme",
+        color: P.three, hx: HX.three,
+        bodyPos: [-4, -1.5, 1]
+    },
+    {
+        sceneId: 4, subjectNum: 4, tot: 6, idx: 6,
         subject: "Three.js", title: "L'écosystème",
         subtitle: "React Three Fiber, Babylon, A-Frame, PlayCanvas...",
         color: P.three, hx: HX.three,
@@ -135,8 +149,10 @@ export const SCENE_CAMS = [
     [
         { pos: [0, 0.2, 5.5], target: [0, 0.2, 0] }
     ],
-    // 4: Three.js (tot: 4)
+    // 4: Three.js (tot: 6)
     [
+        { pos: [0, 1.5, 7], target: [0, -0.5, 0] },
+        { pos: [0, 1.5, 7], target: [0, -0.5, 0] },
         { pos: [0, 1.5, 7], target: [0, -0.5, 0] },
         { pos: [0, 1.5, 7], target: [0, -0.5, 0] },
         { pos: [0, 1.5, 7], target: [0, -0.5, 0] },
@@ -149,6 +165,8 @@ export const SCENE_CAMS = [
         { pos: [-1, -0.5, 6], target: [0, 0, 0] },
     ]
 ];
+
+export const SCENE_OFFSETS = [0, 10, 20, 30, 70, 100];
 
 export const SLIDE_COPY = [
     // 0 - Plan
@@ -231,13 +249,10 @@ export const SLIDE_COPY = [
     // 5 – Three.js
     {
         eyebrow: 'L\'ABSTRACTION DE RÉFÉRENCE',
-        body: `Three.js encapsule la complexité de WebGL derrière une\nAPI orientée objet claire et expressive.\n\n
-        Créé par Ricardo Cabello en 2010, il est maintenant la norme pour le développement 3D sur le web.\n
-        1. Scene : L'univers. C'est un conteneur vide dans lequel on va placer nos objets, nos lumières et nos particules.
+        body: `Librairie Javascript qui encapsule la complexité de WebGL derrière une\nAPI orientée objet.\n\n
 
-        2. Camera : L'œil de l'utilisateur. C'est elle qui définit la perspective, le champ de vision (FOV) et ce qui est visible ou non à l'écran.
+        Créé par Ricardo Cabello en 2010, il est maintenant la norme pour le développement 3D sur le web.\n\n`,
 
-        3. Renderer : Le moteur. C'est lui qui prend la Scène et la Caméra, et fait le sale boulot de traduire tout ça en commandes WebGL pour dessiner les pixels sur le <canvas> HTML.`,
         cta: null,
     },
     // 6 – Vertex / Fragment
@@ -248,14 +263,37 @@ export const SLIDE_COPY = [
     },
     // 7 – Code Three.js
     {
-        eyebrow: 'TROIS OBJETS ESSENTIELS',
-        body: `Une scène Three.js repose sur trois primitives.\n\nScene — le graphe de scène qui contient tous les\nobjets 3D. Camera — définit le point de vue et la\nprojection. Renderer — exécute le pipeline WebGL\net produit l'image finale dans le canvas.`,
+        eyebrow: 'Les objets Three.js',
+        body: `Une scène Three.js repose sur trois primitives.\n\n
+
+        1. Scene — Le conteneur de scène qui contient tous les éléments 3D.\n
+        2. Camera — définit le point de vue de l'utilisateur et la projection.\n
+        3. Renderer — exécute le pipeline WebGL et produit l'image finale dans le canvas.\n
+
+        Three.js vient avec de nombreux objets prédéfinis pour les lumières, les matériaux, les géométries, les effets spéciaux, etc.
+`,
         cta: null,
     },
-    // 8 – Alternatives
+    // 8 – Matériaux
+    {
+        eyebrow: 'MATÉRIAUX',
+        body: `Les matériaux (MeshStandardMaterial, MeshPhysicalMaterial) réagissent avec la lumière pour produire des reflets, de la rugosité et du métal.\n\nC'est la base du PBR (Physically Based Rendering).`,
+        cta: null,
+    },
+    // 9 – Lumières
+    {
+        eyebrow: 'LUMIÈRES',
+        body: `Three.js introduit des objets lumineux (AmbientLight, DirectionalLight, PointLight...) pour éclairer la scène.\n\nSans lumière, les matériaux réagissant à la lumière apparaîtront noirs.`,
+        cta: null,
+    },
+    // 10 – Alternatives
     {
         eyebrow: 'UN ÉCOSYSTÈME RICHE',
-        body: `Three.js n'est pas seul. Babylon.js cible les jeux\net propose un moteur physique intégré. A-Frame et\nReact Three Fiber abstraient davantage encore.\n\nPlayCanvas mise sur un éditeur visuel en ligne.\nChaque outil répond à un contexte différent.`,
+        body: `Three.js est loin d'être le seul.\n\n
+        • Babylon.js : Game engine en plus d'être un framework 3D.\n 
+        • A-Frame : Framework spécialisé pour la réalité virtuelle et augmentée.\n
+        • React Three Fiber : Renderer React pour Three.js.\n`,
+
         cta: null,
     },
     // 9 – Avenir
@@ -288,8 +326,10 @@ export const POSITIONS = [
     { side: 'left', top: '16%' },  // 5  Three.js
     { side: 'right', top: '42%' },  // 6  Vertex/Fragment
     { side: 'left', top: '46%' },  // 7  Coder
-    { side: 'right', top: '14%' },  // 8  Alternatives
-    { side: 'left', top: '14%' },  // 9  Avenir
-    { side: 'right', top: '38%' },  // 10 Limites
-    { side: 'left', top: '28%' },  // 11 WebXR
+    { side: 'right', top: '22%' },  // 8  Matériaux
+    { side: 'left', top: '22%' },  // 9  Lumières
+    { side: 'right', top: '14%' },  // 10  Alternatives
+    { side: 'left', top: '14%' },  // 11  Avenir
+    { side: 'right', top: '38%' },  // 12 Limites
+    { side: 'left', top: '28%' },  // 13 WebXR
 ];

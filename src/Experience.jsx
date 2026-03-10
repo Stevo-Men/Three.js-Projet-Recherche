@@ -15,7 +15,7 @@ import { WebGLScene } from './scenes/WebGLScene';
 import { WebGPUScene } from './scenes/WebGPUScene';
 import { ThreeJSScene } from './scenes/ThreeJSScene';
 import { AvenirScene } from './scenes/AvenirScene';
-import { SCENE_CAMS, SLIDES, SLIDE_COPY } from './data';
+import { SCENE_CAMS, SLIDES, SLIDE_COPY, SCENE_OFFSETS } from './data';
 
 const BODY_FONT = '/fonts/nord-minimal/Web Fonts/NORD-Regular.woff';
 
@@ -27,7 +27,7 @@ function CameraManager({ activeSlide }) {
     useFrame((state) => {
         const slide = SLIDES[activeSlide];
         const sceneId = slide.sceneId;
-        const activeBaseX = sceneId * 10;
+        const activeBaseX = SCENE_OFFSETS[sceneId] || (sceneId * 10);
         const anchor = SCENE_CAMS[sceneId][slide.idx - 1] || SCENE_CAMS[sceneId][0];
 
         vec.set(activeBaseX + anchor.pos[0], anchor.pos[1], anchor.pos[2]);
@@ -56,7 +56,7 @@ function SlideBody3D({ activeSlide }) {
             groupRef.current.visible = false;
             return;
         }
-        const worldX = slide.sceneId * 10 + slide.bodyPos[0];
+        const worldX = (SCENE_OFFSETS[slide.sceneId] || (slide.sceneId * 10)) + slide.bodyPos[0];
         targetPos.current.set(worldX, slide.bodyPos[1], slide.bodyPos[2]);
         groupRef.current.position.lerp(targetPos.current, 0.08);
         groupRef.current.visible = true;
@@ -184,7 +184,7 @@ export function Experience({ activeSlide, activeEffects }) {
                 <PluginScene />
                 <WebGLScene activeSlide={activeSlide} />
                 <WebGPUScene />
-                <ThreeJSScene activeEffects={activeEffects} />
+                <ThreeJSScene activeSlide={activeSlide} activeEffects={activeEffects} />
                 <AvenirScene />
 
                 <PostEffects fx={activeEffects} isThreeJS={isThreeJS} />

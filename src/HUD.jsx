@@ -147,7 +147,7 @@ export function HUD({ activeSlide, activeEffects, toggleEffect }) {
 
                     <div className="sc-divider" style={{ width: '100%', height: '1px', marginBottom: '20px', transition: 'background 0.45s ease', opacity: 0.55, background: hexColor }}></div>
 
-                    <div className="sc-body" style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 'clamp(0.6rem, 0.9vw, 0.72rem)', fontWeight: 300, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.52)', lineHeight: 2.05, whiteSpace: 'pre-line' }}>
+                    <div className="sc-body" style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 'clamp(0.85rem, 1.2vw, 1.05rem)', fontWeight: 400, letterSpacing: '0.03em', color: 'rgba(255,255,255,0.9)', lineHeight: 1.6, whiteSpace: 'pre-line' }}>
                         {paragraphs.map((p, i) => (
                             <div
                                 key={i}
