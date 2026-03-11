@@ -21,7 +21,7 @@ export const SLIDES = [
     {
         sceneId: 0, subjectNum: 0, tot: 1, idx: 1,
         subject: "Plan de la présentation", title: "Sommaire",
-        subtitle: "Les grandes étapes du Web 3D",
+        subtitle: "",
         color: P.sommaire, hx: HX.sommaire,
         bodyPos: null
     },
@@ -172,11 +172,7 @@ export const SLIDE_COPY = [
     // 0 - Plan
     {
         eyebrow: 'SOMMAIRE',
-        body: `1. L'ère des plugins\n
-        2. L'avènement de WebGL\n
-        3. La révolution de WebGPU\n
-        4. L'écosystème Three.js\n
-        5. Un web en mutation`,
+        body: null,
         cta: null,
     },
     // 1 – Plugin Era
@@ -186,10 +182,10 @@ export const SLIDE_COPY = [
         • L'utilisateur devait télécharger et mettre à jour le plugin.\n
         • Failles critiques constantes\n• Non supporté sur mobile\n\n
         Le rendu logiciel\n\n
-        • Dessin pixel par pixel via le CPU (Canvas 2D ou Applets Java).\n
+        • Dessin pixel par pixel via le CPU(Canvas 2D ou Applets Java).\n
         • Calculer la position, la lumière et la couleur de chaque pixel un par un.\n
-        • Performances catastrophiques (< 15 FPS)\n
-        • Graphismes limités au "Fil de fer" (Wireframe) ou couleurs plates`,
+        • Performances catastrophiques(< 15 FPS) \n
+        • Graphismes limités au "Fil de fer"(Wireframe) ou couleurs plates`,
         cta: null,
     },
     // 1 – WebGL arrival
@@ -197,23 +193,23 @@ export const SLIDE_COPY = [
         eyebrow: 'UN TOURNANT POUR LE WEB',
         body: `ORIGINE\n
             • Dérivé d'OpenGL ES 2.0 par le Khronos Group (2011).\n
-            ROLE\n
+ROLE\n
             • API JavaScript de bas niveau\n
             • sert de pont direct et sécurisé entre la page web et la carte graphique de l'utilisateur.\n
-            CONCEPT\n
-            • Transformer des vecteurs mathématiques (triangles) en une grille de pixels.`,
+CONCEPT\n
+            • Transformer des vecteurs mathématiques(triangles) en une grille de pixels.`,
         cta: null,
     },
     // 2 – Pipeline
     {
         eyebrow: 'DU CODE AU PIXEL',
         body: `
-        CPU (Séquentiel) : Le Cerveau
+CPU(Séquentiel) : Le Cerveau
 
         • Gère la logique, les calculs complexes et l'état global.
         • Envoie des instructions de haut niveau au GPU.
 
-        GPU (Parallèle) : Les ouvriers
+    GPU(Parallèle) : Les ouvriers
 
         • Spécialisé dans le calcul matriciel en parallèle.
         • Exécute des milliers de calculs simples simultanément.`,
@@ -223,7 +219,7 @@ export const SLIDE_COPY = [
     {
         eyebrow: 'La limite',
         body: `
-        Le problème : Les "Draw Calls" (Appels de dessin).
+        Le problème: Les "Draw Calls"(Appels de dessin).
 
         • Pour dessiner 1 objet, le CPU doit parler au GPU.\n
         • Pour dessiner 10 000 objets, le CPU sature, même si le GPU dort.`,
@@ -233,15 +229,15 @@ export const SLIDE_COPY = [
     {
         eyebrow: 'AU-DELÀ DU RENDU',
         body: `WebGPU expose le GPU dans sa totalité — pas uniquement\npour le rendu, mais pour le calcul généraliste(GPGPU).\n\n
-        1. Réduction de l'Overhead (La surcouche)\n
-            WebGL : Doit traduire les commandes pour le GPU. \n
-            WebGPU : Parle la langue native des GPU modernes (Vulkan, Metal, DirectX 12). L'envoi des commandes est immédiat.\n
-        2. Le Multithreading 
-            WebGL : force le CPU à préparer les commandes sur un seul fil (Main Thread). \n
-            WebGPU : répartit ce travail sur tous les cœurs du processeur.\n
-        3. Les Compute Shaders\n
-            WebGL : Le GPU ne sait que colorier des pixels.\n
-            WebGPU : Le GPU se transforme en supercalculateur autonome (simulation de fluides, IA, collisions).\n
+1. Réduction de l'Overhead (La surcouche)\n
+WebGL: Doit traduire les commandes pour le GPU.\n
+WebGPU: Parle la langue native des GPU modernes(Vulkan, Metal, DirectX 12).L'envoi des commandes est immédiat.\n
+2. Le Multithreading
+WebGL: force le CPU à préparer les commandes sur un seul fil(Main Thread).\n
+WebGPU: répartit ce travail sur tous les cœurs du processeur.\n
+3. Les Compute Shaders\n
+WebGL: Le GPU ne sait que colorier des pixels.\n
+WebGPU: Le GPU se transforme en supercalculateur autonome(simulation de fluides, IA, collisions).\n
        
             `,
         cta: 'SPEC WEBGPU →',
@@ -249,9 +245,12 @@ export const SLIDE_COPY = [
     // 5 – Three.js
     {
         eyebrow: 'L\'ABSTRACTION DE RÉFÉRENCE',
-        body: `Librairie Javascript qui encapsule la complexité de WebGL derrière une\nAPI orientée objet.\n\n
-
-        Créé par Ricardo Cabello en 2010, il est maintenant la norme pour le développement 3D sur le web.\n\n`,
+        body: `Librairie Javascript orientée objet.\n
+        Créé par Ricardo Cabello en 2010.\n
+        Réduit des dizaines de lignes complexes en quelques lignes intutifs.\n
+        Utilisé par des énormes entreprises comme Ikea, Tesla, NASA, Rockstar Games, TikTok, Bombardier et bien d'autres. \n
+        
+         il est maintenant la norme pour le développement 3D sur le web.\n\n`,
 
         cta: null,
     },

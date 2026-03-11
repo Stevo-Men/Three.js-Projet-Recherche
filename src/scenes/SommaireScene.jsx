@@ -29,7 +29,7 @@ export function SommaireScene() {
             </Text>
 
             <group position={[-4, 0.7, 0]}>
-                <Text position={[0, 0, 0]} fontSize={0.5} color="#ffffff" anchorX="left" font="/fonts/nord-minimal/Web Fonts/NORD-Regular.woff">1. L'ère des plugins</Text>
+                <Text position={[0, 0, 0]} fontSize={0.5} color="#ffffff" anchorX="left" font="/fonts/nord-minimal/Web Fonts/NORD-Regular.woff">1. Avant WebGL</Text>
                 <Text position={[0, -0.8, 0]} fontSize={0.5} color="#ffffff" anchorX="left" font="/fonts/nord-minimal/Web Fonts/NORD-Regular.woff">2. L'avènement de WebGL</Text>
                 <Text position={[0, -1.6, 0]} fontSize={0.5} color="#ffffff" anchorX="left" font="/fonts/nord-minimal/Web Fonts/NORD-Regular.woff">3. La révolution de WebGPU</Text>
                 <Text position={[0, -2.4, 0]} fontSize={0.5} color="#ffffff" anchorX="left" font="/fonts/nord-minimal/Web Fonts/NORD-Regular.woff">4. L'écosystème Three.js</Text>
