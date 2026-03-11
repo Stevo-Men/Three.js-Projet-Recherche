@@ -150,11 +150,11 @@ export const SCENE_CAMS = [
     ],
     // 4: Three.js (tot: 6)
     [
-        { pos: [0, 1.5, 7], target: [0, -0.5, 0] },  // idx=1  vue large
-        { pos: [0, 0.3, 4], target: [0, 0.5, 0] },  // idx=2  face à l'écran (code intro)
+        { pos: [0, 7, 0.1], target: [0, -1, 0] },        // idx=1  top-down sur la voiture
+        { pos: [0, 1.5, 7], target: [0, -0.5, 0] },  // idx=2  vue large
         { pos: [0, 0.3, 4], target: [0, 0.5, 0] },  // idx=3  face à l'écran (objets 3D)
         { pos: [0, 0.3, 4], target: [0, 0.5, 0] },  // idx=4  Matériaux
-        { pos: [0, 0.3, 4], target: [0, 0.5, 0] },  // idx=5  Lumières
+        { pos: [4, 0.5, 2], target: [0, 0.5, 0] },  // idx=5  Lumières (vue de l'avant avec volume beams)
         { pos: [0, 0.3, 4], target: [0, 0.5, 0] }, // idx=6  Écosystème
     ],
     // 5: L'avenir (tot: 3)
@@ -180,7 +180,7 @@ export const SLIDE_COPY = [
         eyebrow: 'LE WEB 3D AVANT 2011',
         bodyStyle: { fontSize: 'xs' },
         body:
-`## L'ère des plugins
+            `## L'ère des plugins
 
 • Adobe Flash (Stage3D), Unity Web Player, VRML
 • Téléchargement et mise à jour du plugin requis
@@ -200,7 +200,7 @@ export const SLIDE_COPY = [
         eyebrow: 'UN TOURNANT POUR LE WEB',
         bodyStyle: { fontSize: 'sm' },
         body:
-`## ORIGINE
+            `## ORIGINE
 
 • Dérivé d'OpenGL ES 2.0 par le Khronos Group (2011)
 
@@ -219,7 +219,7 @@ export const SLIDE_COPY = [
         eyebrow: 'DU CODE AU PIXEL',
         bodyStyle: { fontSize: 'md' },
         body:
-`## CPU (Séquentiel) — Le Cerveau
+            `## CPU (Séquentiel) — Le Cerveau
 
 • Gère la logique, les calculs complexes et l'état global
 • Envoie des instructions de haut niveau au GPU
@@ -235,7 +235,7 @@ export const SLIDE_COPY = [
         eyebrow: 'LA LIMITE',
         bodyStyle: { fontSize: 'md' },
         body:
-`Le problème : les "Draw Calls" (appels de dessin).
+            `Le problème : les "Draw Calls" (appels de dessin).
 
 • Pour dessiner 1 objet, le CPU doit parler au GPU.
 • Pour dessiner 10 000 objets, le CPU sature, même si le GPU dort.`,
@@ -244,9 +244,9 @@ export const SLIDE_COPY = [
     // 5 – WebGPU
     {
         eyebrow: 'AU-DELÀ DU RENDU',
-        bodyStyle: { fontSize: 'xs' },
+        bodyStyle: { fontSize: 'sm' },
         body:
-`WebGPU expose le GPU dans sa totalité — pas uniquement pour le rendu, mais pour le calcul généraliste (GPGPU).
+            `WebGPU expose le GPU dans sa totalité — pas uniquement pour le rendu, mais pour le calcul généraliste (GPGPU).
 
 ## 1. Réduction de l'overhead
 
@@ -269,7 +269,7 @@ export const SLIDE_COPY = [
         eyebrow: 'L\'ABSTRACTION DE RÉFÉRENCE',
         bodyStyle: { fontSize: 'sm' },
         body:
-`Librairie JavaScript orientée objet créée par Ricardo Cabello en 2010.
+            `Librairie JavaScript orientée objet créée par Ricardo Cabello en 2010.
 
 Réduit des dizaines de lignes complexes en quelques lignes intuitives.
 
@@ -283,7 +283,7 @@ Désormais la norme pour le développement 3D sur le web.`,
         eyebrow: 'LES 3 PRIMITIVES',
         bodyStyle: { fontSize: 'md' },
         body:
-`Toute scène Three.js repose sur ce trio minimal.
+            `Toute scène Three.js repose sur ce trio minimal.
 
 • Scene — le graphe de scène qui contient tous les objets 3D.
 • Camera — définit le point de vue et le type de projection (perspective ou orthographique).
@@ -295,7 +295,7 @@ Désormais la norme pour le développement 3D sur le web.`,
         eyebrow: 'CONSTRUIRE LA SCÈNE',
         bodyStyle: { fontSize: 'md' },
         body:
-`Un objet visible est toujours un Mesh — assemblage d'une Geometry (la forme) et d'un Material (l'apparence).
+            `Un objet visible est toujours un Mesh — assemblage d'une Geometry (la forme) et d'un Material (l'apparence).
 
 • BoxGeometry, SphereGeometry, PlaneGeometry…
 • MeshBasicMaterial, MeshStandardMaterial (PBR)…
@@ -308,7 +308,7 @@ Une fois créé : scene.add(cube) et il entre dans la boucle de rendu.`,
         eyebrow: 'MATÉRIAUX',
         bodyStyle: { fontSize: 'lg' },
         body:
-`Les matériaux (MeshStandardMaterial, MeshPhysicalMaterial) réagissent avec la lumière pour produire des reflets, de la rugosité et du métal.
+            `Les matériaux (MeshStandardMaterial, MeshPhysicalMaterial) réagissent avec la lumière pour produire des reflets, de la rugosité et du métal.
 
 C'est la base du PBR (Physically Based Rendering).`,
         cta: null,
@@ -318,7 +318,7 @@ C'est la base du PBR (Physically Based Rendering).`,
         eyebrow: 'LUMIÈRES',
         bodyStyle: { fontSize: 'lg' },
         body:
-`Three.js introduit des objets lumineux (AmbientLight, DirectionalLight, PointLight…) pour éclairer la scène.
+            `Three.js introduit des objets lumineux (AmbientLight, DirectionalLight, PointLight…) pour éclairer la scène.
 
 Sans lumière, les matériaux réagissant à la lumière apparaîtront noirs.`,
         cta: null,
@@ -328,7 +328,7 @@ Sans lumière, les matériaux réagissant à la lumière apparaîtront noirs.`,
         eyebrow: 'UN ÉCOSYSTÈME RICHE',
         bodyStyle: { fontSize: 'md' },
         body:
-`Three.js est loin d'être le seul acteur de l'écosystème 3D web.
+            `Three.js est loin d'être le seul acteur de l'écosystème 3D web.
 
 • Babylon.js : game engine complet en plus d'être un framework 3D.
 • A-Frame : framework spécialisé pour la réalité virtuelle et augmentée.
@@ -338,9 +338,9 @@ Sans lumière, les matériaux réagissant à la lumière apparaîtront noirs.`,
     // 12 – Cas d'utilisation
     {
         eyebrow: 'DU NAVIGATEUR AU MONDE RÉEL',
-        bodyStyle: { fontSize: 'xs' },
+        bodyStyle: { fontSize: 'sm' },
         body:
-`WebGL, WebGPU et Three.js alimentent des industries entières.
+            `WebGL, WebGPU et Three.js alimentent des industries entières.
 
 • E-commerce : configurateurs 3D interactifs (Nike, IKEA, Tesla) directement dans le navigateur.
 • Architecture & BIM : visualisation de bâtiments en temps réel sans logiciel installé.
@@ -352,9 +352,9 @@ Sans lumière, les matériaux réagissant à la lumière apparaîtront noirs.`,
     // 13 – Les limites actuelles
     {
         eyebrow: 'CE QUE LE WEB 3D NE PEUT PAS ENCORE FAIRE',
-        bodyStyle: { fontSize: 'xs' },
+        bodyStyle: { fontSize: 'sm' },
         body:
-`Malgré ses progrès spectaculaires, le web 3D se heurte à des obstacles structurels.
+            `Malgré ses progrès spectaculaires, le web 3D se heurte à des obstacles structurels.
 
 • Mémoire GPU limitée : le navigateur impose un plafond strict sur les scènes très lourdes.
 • Support mobile fragmenté : WebGPU n'est pas encore disponible sur tous les navigateurs mobiles.
@@ -366,9 +366,9 @@ Sans lumière, les matériaux réagissant à la lumière apparaîtront noirs.`,
     // 14 – Technologies émergentes
     {
         eyebrow: 'CE QUE WEBGPU REND POSSIBLE — DEMAIN',
-        bodyStyle: { fontSize: 'xs' },
+        bodyStyle: { fontSize: 'sm' },
         body:
-`WebGPU n'est pas seulement une évolution du rendu — c'est une plateforme de calcul généraliste.
+            `WebGPU n'est pas seulement une évolution du rendu — c'est une plateforme de calcul généraliste.
 
 • Gaussian Splatting : rendu de scènes réelles capturées par IA, déjà expérimenté via WebGPU.
 • Simulation physique : fluides, tissus, corps mous calculés entièrement sur GPU, sans serveur.

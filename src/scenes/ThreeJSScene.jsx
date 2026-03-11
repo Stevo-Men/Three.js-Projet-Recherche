@@ -326,16 +326,16 @@ export function ThreeJSScene({ activeSlide, activeEffects = {} }) {
     const { scene, materials } = useGLTF('/models/car_lowpoly/scene.gltf');
     const groundRef = useRef();
 
-    // Code / logo screens (slides 6–9)
-    const showLogo    = activeSlide === 6;
-    const showCode1   = activeSlide === 7;   // Scene / Camera / Renderer
-    const showCode2   = activeSlide === 8;   // Geometry + Mesh
-    const showCodeMat = activeSlide === 9;   // Material code
-    const showCube    = activeSlide >= 7 && activeSlide <= 9;
+    // Code / logo screens (slides 6–10)
+    const showLogo = activeSlide === 6;
+    const showCode1 = activeSlide === 7;   // Scene / Camera / Renderer
+    const showCode2 = activeSlide === 8;   // Geometry + Mesh
+    const showCodeMat = activeSlide === 9 || activeSlide === 10;   // Material & Lights code
+    const showCube = activeSlide >= 7 && activeSlide <= 10;
 
     // Car state
     const showMaterials = activeSlide >= 9;
-    const showLights    = activeSlide >= 10;
+    const showLights = activeSlide >= 10;
 
     // Fix wheel texture wrapping on mount
     useEffect(() => {
@@ -404,10 +404,10 @@ export function ThreeJSScene({ activeSlide, activeEffects = {} }) {
             </group>
 
             {/* Holographic screens — float left of the car */}
-            <LogoScreen   visible={showLogo}    position={SCREEN_POS} rotation={SCREEN_ROT} />
-            <CodeScreen   code={CODE_INIT}      visible={showCode1}   position={SCREEN_POS} rotation={SCREEN_ROT} />
-            <CodeScreen   code={CODE_OBJECTS}   visible={showCode2}   position={SCREEN_POS} rotation={SCREEN_ROT} />
-            <CodeScreen   code={CODE_MATERIAL}  visible={showCodeMat} position={SCREEN_POS} rotation={SCREEN_ROT} />
+            <LogoScreen visible={showLogo} position={SCREEN_POS} rotation={SCREEN_ROT} />
+            <CodeScreen code={CODE_INIT} visible={showCode1} position={SCREEN_POS} rotation={SCREEN_ROT} />
+            <CodeScreen code={CODE_OBJECTS} visible={showCode2} position={SCREEN_POS} rotation={SCREEN_ROT} />
+            <CodeScreen code={CODE_MATERIAL} visible={showCodeMat} position={SCREEN_POS} rotation={SCREEN_ROT} />
 
             {/* Demo torus — live result of the code, floats right of car */}
             <DemoCube
