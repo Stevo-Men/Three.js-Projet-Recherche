@@ -49,7 +49,7 @@ export const SLIDES = [
     },
     {
         sceneId: 2, subjectNum: 2, tot: 3, idx: 3,
-        subject: "L'avènement de WebGL", title: "Li limite",
+        subject: "L'avènement de WebGL", title: "La limite",
         subtitle: "",
         color: P.webgl, hx: HX.webgl,
         bodyPos: [-4, -1.5, 1]
@@ -72,15 +72,15 @@ export const SLIDES = [
     },
     {
         sceneId: 4, subjectNum: 4, tot: 6, idx: 2,
-        subject: "Three.js", title: "Shaders",
-        subtitle: "Reprendre le contrôle via des matériaux custom",
+        subject: "Three.js", title: "L'Architecture",
+        subtitle: "Scene · Camera · Renderer — les 3 primitives fondatrices",
         color: P.three, hx: HX.three,
         bodyPos: [-4, -1.5, 1]
     },
     {
         sceneId: 4, subjectNum: 4, tot: 6, idx: 3,
-        subject: "Three.js", title: "Code",
-        subtitle: "Scene, Camera, Renderer — Les 3 piliers de l'API",
+        subject: "Three.js", title: "Les objets 3D",
+        subtitle: "Geometry · Material · Mesh — construire et animer la scène",
         color: P.three, hx: HX.three,
         bodyPos: [-4, -1.5, 1]
     },
@@ -105,28 +105,27 @@ export const SLIDES = [
         color: P.three, hx: HX.three,
         bodyPos: [-4, -1.5, 1]
     },
-
     {
         sceneId: 5, subjectNum: 5, tot: 3, idx: 1,
-        subject: "L'avenir de l'écosystème", title: "Un web en mutation",
-        subtitle: "IA générative 3D, outils no-code, web implicite",
+        subject: "L'avenir de l'écosystème", title: "Cas d'utilisation",
+        subtitle: "Là où WebGL, WebGPU et Three.js changent tout",
         color: P.avenir, hx: HX.avenir,
         bodyPos: [-4, -1.5, 1]
     },
     {
         sceneId: 5, subjectNum: 5, tot: 3, idx: 2,
         subject: "L'avenir de l'écosystème", title: "Les limites actuelles",
-        subtitle: "Complexité d'accès, adoption fragmentée, debugging difficile",
+        subtitle: "Ce que le web 3D ne peut pas encore faire",
         color: P.avenir, hx: HX.avenir,
         bodyPos: [-4, -1.5, 1]
     },
     {
         sceneId: 5, subjectNum: 5, tot: 3, idx: 3,
-        subject: "L'avenir de l'écosystème", title: "WebXR",
-        subtitle: "AR & VR natives dans le navigateur — sans installation",
+        subject: "L'avenir de l'écosystème", title: "Technologies émergentes",
+        subtitle: "Ce que WebGPU rend possible — demain",
         color: P.avenir, hx: HX.avenir,
         bodyPos: [-4, -1.5, 1]
-    }
+    },
 ];
 
 // Per-scene Camera Anchors
@@ -151,12 +150,12 @@ export const SCENE_CAMS = [
     ],
     // 4: Three.js (tot: 6)
     [
-        { pos: [0, 1.5, 7], target: [0, -0.5, 0] },
-        { pos: [0, 1.5, 7], target: [0, -0.5, 0] },
-        { pos: [0, 1.5, 7], target: [0, -0.5, 0] },
-        { pos: [0, 1.5, 7], target: [0, -0.5, 0] },
-        { pos: [0, 1.5, 7], target: [0, -0.5, 0] },
-        { pos: [0, 1.5, 7], target: [0, -0.5, 0] },
+        { pos: [0, 1.5, 7], target: [0, -0.5, 0] },  // idx=1  vue large
+        { pos: [0, 0.3, 4], target: [0, 0.5, 0] },  // idx=2  face à l'écran (code intro)
+        { pos: [0, 0.3, 4], target: [0, 0.5, 0] },  // idx=3  face à l'écran (objets 3D)
+        { pos: [0, 0.3, 4], target: [0, 0.5, 0] },  // idx=4  Matériaux
+        { pos: [0, 0.3, 4], target: [0, 0.5, 0] },  // idx=5  Lumières
+        { pos: [0, 0.3, 4], target: [0, 0.5, 0] }, // idx=6  Écosystème
     ],
     // 5: L'avenir (tot: 3)
     [
@@ -229,15 +228,15 @@ CPU(Séquentiel) : Le Cerveau
     {
         eyebrow: 'AU-DELÀ DU RENDU',
         body: `WebGPU expose le GPU dans sa totalité — pas uniquement\npour le rendu, mais pour le calcul généraliste(GPGPU).\n\n
-1. Réduction de l'Overhead (La surcouche)\n
-WebGL: Doit traduire les commandes pour le GPU.\n
-WebGPU: Parle la langue native des GPU modernes(Vulkan, Metal, DirectX 12).L'envoi des commandes est immédiat.\n
-2. Le Multithreading
-WebGL: force le CPU à préparer les commandes sur un seul fil(Main Thread).\n
-WebGPU: répartit ce travail sur tous les cœurs du processeur.\n
-3. Les Compute Shaders\n
-WebGL: Le GPU ne sait que colorier des pixels.\n
-WebGPU: Le GPU se transforme en supercalculateur autonome(simulation de fluides, IA, collisions).\n
+        1. Réduction de l'Overhead (La surcouche)\n
+        WebGL: Doit traduire les commandes pour le GPU.\n
+        WebGPU: Parle la langue native des GPU modernes(Vulkan, Metal, DirectX 12).L'envoi des commandes est immédiat.\n
+        2. Le Multithreading
+        WebGL: force le CPU à préparer les commandes sur un seul fil(Main Thread).\n
+        WebGPU: répartit ce travail sur tous les cœurs du processeur.\n
+        3. Les Compute Shaders\n
+        WebGL: Le GPU ne sait que colorier des pixels.\n
+        WebGPU: Le GPU se transforme en supercalculateur autonome(simulation de fluides, IA, collisions).\n
        
             `,
         cta: 'SPEC WEBGPU →',
@@ -254,23 +253,16 @@ WebGPU: Le GPU se transforme en supercalculateur autonome(simulation de fluides,
 
         cta: null,
     },
-    // 6 – Vertex / Fragment
+    // 6 – L'Architecture Three.js (slide idx=2)
     {
-        eyebrow: 'LE CŒUR DU PIPELINE GPU',
-        body: `Le Vertex Shader traite chaque sommet de la géométrie\n— position, normales, coordonnées UV — et les projette\ndans l'espace écran.\n\nLe Fragment Shader calcule ensuite la couleur finale\nde chaque pixel : texture, lumière, ombre, effet.`,
+        eyebrow: 'LES 3 PRIMITIVES',
+        body: `Toute scène Three.js repose sur ce trio minimal.\n\n• Scene — le graphe de scène qui contient tous les objets 3D.\n\n• Camera — définit le point de vue et le type de projection (perspective ou orthographique).\n\n• Renderer — exécute le pipeline WebGL et produit l'image dans le \`<canvas>\`.`,
         cta: null,
     },
-    // 7 – Code Three.js
+    // 7 – Les objets 3D (slide idx=3)
     {
-        eyebrow: 'Les objets Three.js',
-        body: `Une scène Three.js repose sur trois primitives.\n\n
-
-        1. Scene — Le conteneur de scène qui contient tous les éléments 3D.\n
-        2. Camera — définit le point de vue de l'utilisateur et la projection.\n
-        3. Renderer — exécute le pipeline WebGL et produit l'image finale dans le canvas.\n
-
-        Three.js vient avec de nombreux objets prédéfinis pour les lumières, les matériaux, les géométries, les effets spéciaux, etc.
-`,
+        eyebrow: 'CONSTRUIRE LA SCÈNE',
+        body: `Un objet visible est toujours un Mesh — assemblage d'une Geometry (la forme) et d'un Material (l'apparence).\n\n• BoxGeometry, SphereGeometry, PlaneGeometry…\n\n• MeshBasicMaterial, MeshStandardMaterial (PBR)…\n\nUne fois créé : \`scene.add(cube)\` et il entre dans la boucle de rendu.`,
         cta: null,
     },
     // 8 – Matériaux
@@ -289,29 +281,46 @@ WebGPU: Le GPU se transforme en supercalculateur autonome(simulation de fluides,
     {
         eyebrow: 'UN ÉCOSYSTÈME RICHE',
         body: `Three.js est loin d'être le seul.\n\n
-        • Babylon.js : Game engine en plus d'être un framework 3D.\n 
+        • Babylon.js : Game engine en plus d'être un framework 3D.\n \n 
         • A-Frame : Framework spécialisé pour la réalité virtuelle et augmentée.\n
         • React Three Fiber : Renderer React pour Three.js.\n`,
 
         cta: null,
     },
-    // 9 – Avenir
+    // Cas d'utilisation
     {
-        eyebrow: 'UN CHAMP EN PLEINE MUTATION',
-        body: `WebGPU, WebXR, l'IA générative 3D et les outils\nno-code transforment profondément l'écosystème.\n\nLa frontière entre le web et les applications\nnatives s'estompe. Le navigateur devient une\nplateforme de création interactive à part entière.`,
+        eyebrow: 'DU NAVIGATEUR AU MONDE RÉEL',
+        body: `WebGL, WebGPU et Three.js ne sont plus réservés aux expériences visuelles — ils alimentent des industries entières.\n\n
+- E-commerce : configurateurs 3D interactifs (Nike, IKEA, Tesla) permettent d'explorer un produit avant l'achat, directement dans le navigateur.\n
+- Architecture & BIM : visualisation de bâtiments et de plans en temps réel sans logiciel installé.\n
+- Simulation scientifique : dynamique des fluides, cartographie géospatiale (Cesium, deck.gl), visualisation de données médicales.\n
+- Jeux & expériences : jeux web AAA, expériences immersives marketing, musées numériques.\n
+- IA & Machine Learning : TensorFlow.js exploite WebGPU pour exécuter des modèles d'IA directement sur le GPU du client — sans serveur.`,
         cta: null,
     },
-    // 10 – Limites
+
+    // Les limites actuelles
     {
-        eyebrow: 'DES OBSTACLES PERSISTANTS',
-        body: `Malgré ses progrès, le web 3D reste complexe à\nmaîtriser : courbe d'apprentissage abrupte, outils\nde debugging limités et adoption fragmentée.\n\nLa performance sur mobile demeure contrainte, et\nl'accessibilité est souvent sacrifiée au profit\nde la richesse visuelle.`,
+        eyebrow: 'CE QUE LE WEB 3D NE PEUT PAS ENCORE FAIRE',
+        body: `Malgré ses progrès spectaculaires, le web 3D se heurte à des obstacles structurels.\n\n
+- Mémoire GPU limitée : le navigateur impose un plafond strict. Des scènes très lourdes (jeux AAA, simulations haute fidélité) restent hors de portée.\n
+- Support mobile fragmenté : WebGPU n'est pas encore disponible sur tous les navigateurs mobiles. WebGL reste le seul dénominateur commun fiable.\n
+- Debugging difficile : les outils d'inspection du pipeline GPU dans le navigateur sont encore immatures comparés à Unity ou Unreal.\n
+- Chargement réseau : des assets 3D optimisés (glTF, Draco, KTX2) restent lourds sur connexion lente. Le streaming de géométrie est encore expérimental.\n
+- Courbe d'apprentissage : maîtriser shaders, matrices et pipeline GPU demande une expertise que peu de développeurs web possèdent.`,
         cta: null,
     },
-    // 11 – WebXR
+
+    // Technologies émergentes
     {
-        eyebrow: 'LE SPATIAL COMPUTING DANS LE BROWSER',
-        body: `WebXR Device API permet d'accéder à des casques VR\net des surfaces AR directement depuis le navigateur.\n\nSans installation, sans app store : une URL suffit\npour plonger l'utilisateur dans une expérience\nimersive sur Meta Quest, Vision Pro ou mobile.`,
-        cta: 'WEBXR SPEC →',
+        eyebrow: 'CE QUE WEBGPU REND POSSIBLE — DEMAIN',
+        body: `WebGPU n'est pas seulement une évolution du rendu — c'est une plateforme de calcul généraliste qui ouvre des portes inédites.\n\n
+- Gaussian Splatting : technique de rendu de scènes réelles capturées par IA (néRF évolués), déjà expérimentée dans le navigateur via WebGPU.\n
+- Simulation physique temps réel : fluides, tissus, corps mous calculés entièrement sur GPU — sans serveur distant.\n
+- LLMs dans le navigateur : WebGPU permet d'exécuter de petits modèles de langage localement (WebLLM, Transformers.js).\n
+- WebXR + WebGPU : réalité augmentée et virtuelle natives avec un rendu GPU haute performance, directement dans l'URL.\n
+- Moteurs de rendu hybrides : path tracing temps réel (éclairage global photoréaliste) commence à devenir envisageable dans le browser.`,
+        cta: 'WEBGPU EXPLAINER →',
     },
 ];
 
@@ -328,7 +337,7 @@ export const POSITIONS = [
     { side: 'right', top: '22%' },  // 8  Matériaux
     { side: 'left', top: '22%' },  // 9  Lumières
     { side: 'right', top: '14%' },  // 10  Alternatives
-    { side: 'left', top: '14%' },  // 11  Avenir
-    { side: 'right', top: '38%' },  // 12 Limites
-    { side: 'left', top: '28%' },  // 13 WebXR
+    { side: 'left', top: '14%' },   // Cas d'utilisation
+    { side: 'right', top: '18%' },  // Limites actuelles
+    { side: 'left', top: '16%' },   // Technologies émergentes
 ];
