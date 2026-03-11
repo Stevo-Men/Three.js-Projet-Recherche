@@ -2,6 +2,96 @@ import React, { useEffect, useState } from 'react';
 import { SLIDES, SLIDE_COPY, POSITIONS } from './data';
 import './style.css';
 
+// ─── Body text size tokens ─────────────────────────────────────────────────────
+const BODY_SIZES = {
+    xs: 'clamp(0.68rem, 0.88vw, 0.80rem)',
+    sm: 'clamp(0.76rem, 1.0vw, 0.90rem)',
+    md: 'clamp(0.85rem, 1.2vw, 1.05rem)',
+    lg: 'clamp(1.0rem, 1.4vw, 1.2rem)',
+};
+
+// ─── Structured body renderer ──────────────────────────────────────────────────
+// Format conventions for body strings in data.js:
+//   ## Heading text   → accent-colored label (no ## in output)
+//   • item / - item   → bullet point
+//   plain text        → paragraph
+//   \n\n              → block separator
+function BodyContent({ body, bodyStyle = {}, isVisible, accentColor }) {
+    if (!body) return null;
+    const { fontSize = 'md', lineHeight = 1.65 } = bodyStyle;
+    const blocks = body.split('\n\n').map(b => b.trim()).filter(Boolean);
+    let animIdx = 0;
+
+    return (
+        <div style={{
+            fontFamily: 'JetBrains Mono, monospace',
+            fontSize: BODY_SIZES[fontSize] || BODY_SIZES.md,
+            fontWeight: 400,
+            letterSpacing: '0.03em',
+            color: 'rgba(255,255,255,0.9)',
+            lineHeight,
+        }}>
+            {blocks.map((block, bi) => {
+                const lines = block.split('\n').map(l => l.trim()).filter(Boolean);
+
+                // Section heading: lone ## line
+                if (lines.length === 1 && lines[0].startsWith('## ')) {
+                    const idx = animIdx++;
+                    return (
+                        <div key={bi} style={{
+                            marginTop: bi > 0 ? '12px' : '0',
+                            marginBottom: '2px',
+                            fontSize: '0.82em',
+                            fontWeight: 600,
+                            letterSpacing: '0.1em',
+                            color: accentColor || 'rgba(255,255,255,0.6)',
+                            opacity: isVisible ? 1 : 0,
+                            transition: `opacity 0.45s ease ${0.18 + idx * 0.06}s`,
+                        }}>
+                            {lines[0].slice(3)}
+                        </div>
+                    );
+                }
+
+                // All-bullet block
+                if (lines.every(l => /^[•\-]/.test(l))) {
+                    return (
+                        <div key={bi} style={{ marginTop: bi > 0 ? '8px' : '0' }}>
+                            {lines.map((line, li) => {
+                                const idx = animIdx++;
+                                return (
+                                    <div key={li} style={{
+                                        display: 'flex',
+                                        gap: '0.6em',
+                                        marginTop: li > 0 ? '5px' : '0',
+                                        opacity: isVisible ? 1 : 0,
+                                        transition: `opacity 0.45s ease ${0.18 + idx * 0.06}s`,
+                                    }}>
+                                        <span style={{ color: accentColor, flexShrink: 0 }}>›</span>
+                                        <span>{line.replace(/^[•\-]\s*/, '')}</span>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    );
+                }
+
+                // Regular paragraph (join multi-lines with a space)
+                const idx = animIdx++;
+                return (
+                    <div key={bi} style={{
+                        marginTop: bi > 0 ? '10px' : '0',
+                        opacity: isVisible ? 1 : 0,
+                        transition: `opacity 0.45s ease ${0.18 + idx * 0.06}s`,
+                    }}>
+                        {lines.join(' ')}
+                    </div>
+                );
+            })}
+        </div>
+    );
+}
+
 // ─── Effects config ────────────────────────────────────────────────────────────
 const EFFECTS = [
     { key: 'bloom', label: 'Bloom', desc: 'Luminous glow on bright areas' },
@@ -119,7 +209,7 @@ export function HUD({ activeSlide, activeEffects, toggleEffect }) {
         ...(isRight ? { right: 'clamp(80px, 7vw, 110px)' } : { left: 'clamp(32px, 5vw, 64px)' })
     };
 
-    const paragraphs = (copy.body || slide.subtitle).split('\n\n');
+    // paragraphs no longer needed — BodyContent handles parsing
 
     return (
         <div className="sc-wrap" style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', pointerEvents: 'none', zIndex: 50 }}>
@@ -147,20 +237,13 @@ export function HUD({ activeSlide, activeEffects, toggleEffect }) {
 
                     <div className="sc-divider" style={{ width: '100%', height: '1px', marginBottom: '20px', transition: 'background 0.45s ease', opacity: 0.55, background: hexColor }}></div>
 
-                    <div className="sc-body" style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 'clamp(0.85rem, 1.2vw, 1.05rem)', fontWeight: 400, letterSpacing: '0.03em', color: 'rgba(255,255,255,0.9)', lineHeight: 1.6, whiteSpace: 'pre-line' }}>
-                        {paragraphs.map((p, i) => (
-                            <div
-                                key={i}
-                                className="sc-para"
-                                style={{
-                                    marginTop: i > 0 ? '14px' : '0',
-                                    opacity: isVisible ? 1 : 0,
-                                    transition: `opacity 0.45s ease ${0.18 + i * 0.08}s`
-                                }}
-                            >
-                                {p.replace(/\n/g, ' ')}
-                            </div>
-                        ))}
+                    <div className="sc-body">
+                        <BodyContent
+                            body={copy.body || slide.subtitle || ''}
+                            bodyStyle={copy.bodyStyle}
+                            isVisible={isVisible}
+                            accentColor={hexColor}
+                        />
                     </div>
 
                     {copy.cta && (
