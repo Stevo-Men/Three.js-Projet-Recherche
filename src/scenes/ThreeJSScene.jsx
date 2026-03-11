@@ -338,17 +338,7 @@ export function ThreeJSScene({ activeSlide, activeEffects = {} }) {
     const showLights = activeSlide >= 10;
 
     // Fix wheel texture wrapping on mount
-    useEffect(() => {
-        if (materials) {
-            Object.values(materials).forEach(mat => {
-                if ((mat.name.includes('pneu') || mat.name.includes('material_0')) && mat.map) {
-                    mat.map.wrapS = THREE.RepeatWrapping;
-                    mat.map.wrapT = THREE.RepeatWrapping;
-                    mat.map.needsUpdate = true;
-                }
-            });
-        }
-    }, [materials]);
+
 
     // Toggle wireframe ↔ full materials on the car
     useEffect(() => {
@@ -428,7 +418,7 @@ export function ThreeJSScene({ activeSlide, activeEffects = {} }) {
                             <spotLight position={[2.9, 0.15, 0.6]} angle={0.4} penumbra={0.3} intensity={80} distance={25} color="#bbddff">
                                 <object3D attach="target" position={[10, 0.15, 2]} />
                             </spotLight>
-                            <mesh position={[3.0, 0.15, 0.6]} rotation={[0, Math.PI / 2, 0]}>
+                            <mesh position={[2.9, 0.15, 0.6]} rotation={[0, Math.PI / 2, 0]}>
                                 <circleGeometry args={[0.1, 16]} />
                                 <meshBasicMaterial color="#ffffff" />
                             </mesh>
@@ -437,7 +427,7 @@ export function ThreeJSScene({ activeSlide, activeEffects = {} }) {
                             <spotLight position={[2.9, 0.15, -0.6]} angle={0.4} penumbra={0.3} intensity={80} distance={25} color="#bbddff">
                                 <object3D attach="target" position={[10, 0.15, -2]} />
                             </spotLight>
-                            <mesh position={[3.0, 0.15, -0.6]} rotation={[0, Math.PI / 2, 0]}>
+                            <mesh position={[2.9, 0.15, 0.6]} rotation={[0, Math.PI / 2, 0]}>
                                 <circleGeometry args={[0.1, 16]} />
                                 <meshBasicMaterial color="#ffffff" />
                             </mesh>

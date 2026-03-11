@@ -154,8 +154,8 @@ export const SCENE_CAMS = [
         { pos: [0, 1.5, 7], target: [0, -0.5, 0] },  // idx=2  vue large
         { pos: [0, 0.3, 4], target: [0, 0.5, 0] },  // idx=3  face à l'écran (objets 3D)
         { pos: [0, 0.3, 4], target: [0, 0.5, 0] },  // idx=4  Matériaux
-        { pos: [4, 0.5, 2], target: [0, 0.5, 0] },  // idx=5  Lumières (vue de l'avant avec volume beams)
-        { pos: [0, 0.3, 4], target: [0, 0.5, 0] }, // idx=6  Écosystème
+        { pos: [3, -0.7, 0], target: [-2, 0.5, 0] },  // idx=5  Lumières (face avant de la voiture)
+        { pos: [2, -0.7, -2], target: [-2, 0.5, 0] }, // idx=6  Écosystème
     ],
     // 5: L'avenir (tot: 3)
     [
