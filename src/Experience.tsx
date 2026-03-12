@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import {
@@ -13,7 +13,7 @@ import { PluginScene } from './scenes/PluginScene';
 import { WebGLScene } from './scenes/WebGLScene';
 import { WebGPUScene } from './scenes/WebGPUScene';
 import { ThreeJSScene } from './scenes/ThreeJSScene';
-import { AvenirScene } from './scenes/AvenirScene';
+import { AvenirScene, TABS } from './scenes/AvenirScene';
 import { SCENE_CAMS, SLIDES, SCENE_OFFSETS } from './data';
 
 // ─── Camera Manager ──────────────────────────────────────────────────────────
@@ -108,16 +108,75 @@ function PostEffects({ fx, isThreeJS }: { fx: Record<string, boolean>; isThreeJS
     );
 }
 
+// ─── Avenir Tab Bar ───────────────────────────────────────────────────────────
+function AvenirTabBar({ activeTab, onTab, visible }: {
+    activeTab: number;
+    onTab: (i: number) => void;
+    visible: boolean;
+}) {
+    return (
+        <div style={{
+            position: 'fixed',
+            top: 24,
+            left: '50%',
+            transform: 'translateX(-50%)',
+            display: 'flex',
+            gap: 10,
+            zIndex: 30,
+            opacity: visible ? 1 : 0,
+            pointerEvents: visible ? 'auto' : 'none',
+            transition: 'opacity 0.35s ease',
+        }}>
+            {TABS.map((tab, i) => (
+                <button
+                    key={tab.key}
+                    onClick={() => onTab(i)}
+                    style={{
+                        padding: '7px 16px',
+                        borderRadius: 20,
+                        border: `1.5px solid ${activeTab === i ? tab.accent : 'rgba(255,255,255,0.2)'}`,
+                        background: activeTab === i
+                            ? `${tab.accent}22`
+                            : 'rgba(0,0,0,0.45)',
+                        color: activeTab === i ? tab.accent : 'rgba(255,255,255,0.65)',
+                        fontSize: 13,
+                        fontWeight: activeTab === i ? 700 : 400,
+                        cursor: 'pointer',
+                        backdropFilter: 'blur(8px)',
+                        transition: 'all 0.2s ease',
+                        letterSpacing: '0.02em',
+                    }}
+                >
+                    {tab.label}
+                </button>
+            ))}
+        </div>
+    );
+}
+
 // ─── Experience ───────────────────────────────────────────────────────────────
 export function Experience({ activeSlide, activeEffects }: { activeSlide: number; activeEffects: Record<string, boolean> }) {
     const isThreeJS = SLIDES[activeSlide]?.sceneId === 4;
-    const isAvenir = SLIDES[activeSlide]?.sceneId === 5;
+    const isAvenir  = SLIDES[activeSlide]?.sceneId === 5;
+
+    const [activeTab, setActiveTab] = useState(0);
+
+    // Reset tab to 0 whenever we enter the Avenir section
+    useEffect(() => {
+        if (isAvenir) setActiveTab(0);
+    }, [isAvenir]);
 
     return (
         <>
             <Canvas
                 camera={{ position: [0, 0, 8], fov: 45 }}
-                style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', zIndex: 10, pointerEvents: 'none' }}
+                style={{
+                    position: 'fixed', top: 0, left: 0,
+                    width: '100%', height: '100%',
+                    zIndex: 10,
+                    // Enable pointer events on Avenir slides so drag/click interactions work
+                    pointerEvents: isAvenir ? 'auto' : 'none',
+                }}
             >
                 <ambientLight intensity={0.5} />
 
@@ -130,13 +189,18 @@ export function Experience({ activeSlide, activeEffects }: { activeSlide: number
                     <WebGLScene activeSlide={activeSlide} />
                     <WebGPUScene />
                     <ThreeJSScene activeSlide={activeSlide} activeEffects={activeEffects} />
+                    <AvenirScene activeSlide={activeSlide} activeTab={activeTab} />
 
                     <PostEffects fx={activeEffects} isThreeJS={isThreeJS} />
                 </Selection>
             </Canvas>
 
-            {/* AvenirScene renders its own vanilla Three.js canvas — must live OUTSIDE the R3F Canvas */}
-            <AvenirScene activeSlide={activeSlide} isVisible={isAvenir} />
+            {/* HTML tab bar — floats above the canvas on Avenir slides only */}
+            <AvenirTabBar
+                activeTab={activeTab}
+                onTab={setActiveTab}
+                visible={isAvenir && SLIDES[activeSlide]?.idx === 1}
+            />
         </>
     );
 }
