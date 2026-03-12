@@ -1,9 +1,8 @@
-import React, { useRef, useMemo, useEffect } from 'react';
+import { useRef, useMemo, useEffect } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { useGLTF, useTexture } from '@react-three/drei';
 import { Select } from '@react-three/postprocessing';
 import * as THREE from 'three';
-import { SLIDES } from '../data';
 
 // ─── Code snippets ────────────────────────────────────────────────────────────
 const CODE_INIT = `// 1. Scene
@@ -28,40 +27,6 @@ document.body.appendChild(renderer.domElement);
 `;
 
 
-const CODE_GEOMETRY = `// Géométrie + Matériau → Mesh
-const geometry = new THREE.SphereGeometry(1, 1, 1);
-
-scene.add(geometry);
-
-// Boucle de rendu 
-renderer.setAnimationLoop(() => {
-  renderer.render(scene, camera);
-});`;
-
-const CODE_MATERIAL = `// Géométrie + Matériau → Mesh
-const geometry = new THREE.SphereGeometry(1, 1, 1);
-
-const chromeMat = new THREE.MeshStandardMaterial({
-  color: new THREE.Color(0xffffff),
-  roughness: 0.05,
-  metalness: 1.0,
-  envMapIntensity: 2.0,
-});
-
-const sphere = new THREE.Mesh(geometry, chromeMat);
-scene.add(sphere);
-
-// Lumière directionnelle
-const light = new THREE.DirectionalLight(0xffffff, 1.5);
-light.position.set(5, 5, 5);
-scene.add(light);
-
-// Boucle de rendu avec animation
-renderer.setAnimationLoop(() => {
-  sphere.rotation.x += 0.01;
-  sphere.rotation.y += 0.01;
-  renderer.render(scene, camera);
-});`;
 
 
 const CODE_OBJECTS = `// Géométrie + Matériau → Mesh
@@ -90,12 +55,13 @@ renderer.setAnimationLoop(() => {
 
 
 // ─── Canvas code renderer ─────────────────────────────────────────────────────
-function createCodeTexture(code, accentHex = '#ffaa00') {
+function createCodeTexture(code: string, accentHex = '#ffaa00') {
     const W = 640, H = 480;
     const canvas = document.createElement('canvas');
     canvas.width = W;
     canvas.height = H;
     const ctx = canvas.getContext('2d');
+    if (!ctx) return new THREE.CanvasTexture(canvas);
 
     // Background
     ctx.fillStyle = '#0d1117';
@@ -111,7 +77,7 @@ function createCodeTexture(code, accentHex = '#ffaa00') {
     ctx.fillRect(0, 0, W, 32);
 
     // macOS-like window dots
-    const dots = [['#ff5f57', 14], ['#ffbd2e', 32], ['#28c940', 50]];
+    const dots: [string, number][] = [['#ff5f57', 14], ['#ffbd2e', 32], ['#28c940', 50]];
     dots.forEach(([color, x]) => {
         ctx.fillStyle = color;
         ctx.beginPath();
@@ -163,7 +129,7 @@ function createCodeTexture(code, accentHex = '#ffaa00') {
     };
 
     const lines = code.split('\n');
-    lines.forEach((line, i) => {
+    lines.forEach((line: string, i: number) => {
         const y = MARGIN_Y + i * LINE_H;
         if (y > H - 6) return;
 
@@ -217,9 +183,9 @@ function createCodeTexture(code, accentHex = '#ffaa00') {
             if (/^0x[0-9a-fA-F]+/.test(remaining)) {
                 const m = remaining.match(/^0x[0-9a-fA-F]+/);
                 ctx.fillStyle = C.number;
-                ctx.fillText(m[0], x, y);
-                x += ctx.measureText(m[0]).width;
-                remaining = remaining.slice(m[0].length);
+                ctx.fillText(m![0], x, y);
+                x += ctx.measureText(m![0]).width;
+                remaining = remaining.slice(m![0].length);
                 continue;
             }
 
@@ -227,9 +193,9 @@ function createCodeTexture(code, accentHex = '#ffaa00') {
             if (/^\d/.test(remaining)) {
                 const m = remaining.match(/^\d+(\.\d+)?/);
                 ctx.fillStyle = C.number;
-                ctx.fillText(m[0], x, y);
-                x += ctx.measureText(m[0]).width;
-                remaining = remaining.slice(m[0].length);
+                ctx.fillText(m![0], x, y);
+                x += ctx.measureText(m![0]).width;
+                remaining = remaining.slice(m![0].length);
                 continue;
             }
 
@@ -259,8 +225,8 @@ function createCodeTexture(code, accentHex = '#ffaa00') {
 }
 
 // ─── Code Screen plane ────────────────────────────────────────────────────────
-function CodeScreen({ code, visible, position = [0, 0, 0], rotation = [-0.12, 0, 0] }) {
-    const meshRef = useRef();
+function CodeScreen({ code, visible, position = [0, 0, 0], rotation = [-0.12, 0, 0] }: { code: string, visible: boolean, position?: [number, number, number], rotation?: [number, number, number] }) {
+    const meshRef = useRef<THREE.Mesh<any, any>>(null);
 
     const texture = useMemo(() => {
         if (!code) return null;
@@ -282,14 +248,15 @@ function CodeScreen({ code, visible, position = [0, 0, 0], rotation = [-0.12, 0,
 }
 
 // ─── Logo Screen plane ────────────────────────────────────────────────────────
-function LogoScreen({ visible, position = [0, 0, 0], rotation = [-0.12, 0, 0] }) {
+function LogoScreen({ visible, position = [0, 0, 0], rotation = [-0.12, 0, 0] }: { visible: boolean, position?: [number, number, number], rotation?: [number, number, number] }) {
     const texture = useTexture('/images/threejs_logo.png');
-    const groupRef = useRef();
+    const groupRef = useRef<THREE.Group>(null);
 
     if (!visible || !texture) return null;
 
     // Calculate original aspect ratio to avoid stretching
-    const aspect = texture.image ? texture.image.width / texture.image.height : 1.5;
+    const textureImage = texture.image as { width: number, height: number } | undefined;
+    const aspect = textureImage ? textureImage.width / textureImage.height : 1.5;
 
     // Screen is 2.0 x 1.5 (WxH), so we constrain the logo inside it
     let logoHeight = 0.8;
@@ -317,8 +284,8 @@ function LogoScreen({ visible, position = [0, 0, 0], rotation = [-0.12, 0, 0] })
 }
 
 // ─── Demo Torus — represents the "Mesh" added in the code ─────────────────────
-function DemoCube({ visible, showMaterials, showLights }) {
-    const meshRef = useRef();
+function DemoCube({ visible, showMaterials, showLights }: { visible: boolean, showMaterials: boolean, showLights: boolean }) {
+    const meshRef = useRef<THREE.Mesh<any, any>>(null);
 
     useFrame((state) => {
         if (meshRef.current && visible) {
@@ -357,7 +324,7 @@ function DemoCube({ visible, showMaterials, showLights }) {
 }
 
 // ─── Main ThreeJSScene ────────────────────────────────────────────────────────
-export function ThreeJSScene({ activeSlide, activeEffects = {} }) {
+export function ThreeJSScene({ activeSlide, activeEffects = {} }: { activeSlide: number, activeEffects?: Record<string, boolean> }) {
     const { scene } = useGLTF('/models/computer/scene.gltf');
 
     // Slide 6 = Three.js 1st slide: logo

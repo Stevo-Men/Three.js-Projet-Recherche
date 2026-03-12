@@ -13,7 +13,14 @@ const INITIAL_EFFECTS = {
     smaa: false,
     vignette: false,
 };
-function Timeline({ activeSlide, setActiveSlide }) {
+
+export type EffectKeys = keyof typeof INITIAL_EFFECTS;
+
+interface TimelineProps {
+    activeSlide: number;
+    setActiveSlide: React.Dispatch<React.SetStateAction<number>>;
+}
+function Timeline({ activeSlide, setActiveSlide }: TimelineProps) {
     return (
         <div style={{
             position: 'fixed',
@@ -41,13 +48,17 @@ function Timeline({ activeSlide, setActiveSlide }) {
                             cursor: 'pointer',
                             padding: '0 2px',
                         }}
-                        onMouseEnter={(e) => {
-                            e.currentTarget.firstChild.style.height = '6px';
-                            e.currentTarget.firstChild.style.opacity = '1';
+                        onMouseEnter={(e: React.MouseEvent<HTMLDivElement>) => {
+                            if (e.currentTarget.firstChild instanceof HTMLElement) {
+                                e.currentTarget.firstChild.style.height = '6px';
+                                e.currentTarget.firstChild.style.opacity = '1';
+                            }
                         }}
-                        onMouseLeave={(e) => {
-                            e.currentTarget.firstChild.style.height = isActive ? '4px' : '2px';
-                            e.currentTarget.firstChild.style.opacity = isPast ? '0.85' : '0.3';
+                        onMouseLeave={(e: React.MouseEvent<HTMLDivElement>) => {
+                            if (e.currentTarget.firstChild instanceof HTMLElement) {
+                                e.currentTarget.firstChild.style.height = isActive ? '4px' : '2px';
+                                e.currentTarget.firstChild.style.opacity = isPast ? '0.85' : '0.3';
+                            }
                         }}
                     >
                         <div style={{
@@ -69,11 +80,11 @@ export default function App() {
     const [wheelLock, setWheelLock] = useState(false);
     const [activeEffects, setActiveEffects] = useState(INITIAL_EFFECTS);
 
-    const toggleEffect = useCallback((key) => {
+    const toggleEffect = useCallback((key: EffectKeys) => {
         setActiveEffects(prev => ({ ...prev, [key]: !prev[key] }));
     }, []);
 
-    const nudge = useCallback((dir) => {
+    const nudge = useCallback((dir: number) => {
         if (wheelLock) return;
 
         const next = activeSlide + dir;
@@ -85,13 +96,13 @@ export default function App() {
     }, [activeSlide, wheelLock]);
 
     useEffect(() => {
-        const handleWheel = (e) => {
+        const handleWheel = (e: WheelEvent) => {
             e.preventDefault();
             if (Math.abs(e.deltaY) < 20) return;
             nudge(e.deltaY > 0 ? 1 : -1);
         };
 
-        const handleKey = (e) => {
+        const handleKey = (e: KeyboardEvent) => {
             if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') nudge(1);
             if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') nudge(-1);
         };
@@ -108,7 +119,7 @@ export default function App() {
     return (
         <>
             <Experience activeSlide={activeSlide} activeEffects={activeEffects} />
-            <HUD activeSlide={activeSlide} activeEffects={activeEffects} toggleEffect={toggleEffect} />
+            <HUD activeSlide={activeSlide} activeEffects={activeEffects} toggleEffect={(key: string) => toggleEffect(key as EffectKeys)} />
 
             {/* Interactive Timeline HUD */}
             <Timeline activeSlide={activeSlide} setActiveSlide={setActiveSlide} />

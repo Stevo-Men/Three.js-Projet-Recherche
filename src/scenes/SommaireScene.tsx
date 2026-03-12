@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import { useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Text } from '@react-three/drei';
 import * as THREE from 'three';
@@ -6,9 +6,9 @@ import { SLIDES } from '../data';
 
 export function SommaireScene() {
     const hx = SLIDES[0].hx;
-    const groupRef = useRef();
+    const groupRef = useRef<THREE.Group>(null);
 
-    useFrame((state, delta) => {
+    useFrame((state, _delta) => {
         if (groupRef.current) {
             // Subtle floating effect
             groupRef.current.position.y = Math.sin(state.clock.elapsedTime * 0.5) * 0.1;
@@ -25,7 +25,7 @@ export function SommaireScene() {
                 anchorY="middle"
                 font="/fonts/nord-minimal/Web Fonts/NORD-Regular.woff"
             >
-
+                {""}
             </Text>
 
         </group>

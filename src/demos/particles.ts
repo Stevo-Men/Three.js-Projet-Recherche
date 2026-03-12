@@ -5,9 +5,8 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { GUI } from 'three/examples/jsm/libs/lil-gui.module.min.js';
 import Stats from 'three/examples/jsm/libs/stats.module.js';
 
-let renderer, scene, camera, controls, stats, gui;
-let animationId;
-let resizeObserver;
+let renderer: any, scene: THREE.Scene, camera: THREE.PerspectiveCamera, controls: OrbitControls, stats: Stats, gui: GUI;
+let resizeObserver: ResizeObserver;
 
 // Params config
 const PARAMS = {
@@ -17,7 +16,7 @@ const PARAMS = {
   size: 0.05
 };
 
-export async function mount(container) {
+export async function mount(container: HTMLElement) {
   // 1. Check WebGPU Support
   if (!navigator.gpu) {
     container.innerHTML = `
@@ -32,7 +31,7 @@ export async function mount(container) {
   }
 
   // 2. Dynamic Import
-  let WebGPURenderer, wgslFn, positionLocal, instanceIndex, storage, uniform, texture, timeNode, Fn, vec3, vec4, float, sin, cos;
+  let WebGPURenderer: any, positionLocal: any, instanceIndex: any, storage: any, uniform: any, timeNode: any, Fn: any, vec3: any, vec4: any, float: any, sin: any, cos: any;
   try {
     // three/webgpu for Renderer
     const ThreeWebGPU = await import('three/webgpu');
@@ -40,12 +39,10 @@ export async function mount(container) {
 
     // three/tsl for Nodes (time, instanceIndex, etc)
     const ThreeTSL = await import('three/tsl');
-    wgslFn = ThreeTSL.wgslFn;
     positionLocal = ThreeTSL.positionLocal;
     instanceIndex = ThreeTSL.instanceIndex;
     storage = ThreeTSL.storage;
     uniform = ThreeTSL.uniform;
-    texture = ThreeTSL.texture;
     timeNode = ThreeTSL.time;
     Fn = ThreeTSL.Fn;
     vec3 = ThreeTSL.vec3;
@@ -54,7 +51,7 @@ export async function mount(container) {
     sin = ThreeTSL.sin;
     cos = ThreeTSL.cos;
 
-  } catch (e) {
+  } catch (e: any) {
     console.error("Failed to load WebGPU modules:", e);
     container.innerHTML = `<h1 style="color:red">Error loading modules: ${e.message}</h1>`;
     return;
@@ -85,10 +82,10 @@ export async function mount(container) {
   const material = new THREE.MeshNormalMaterial();
 
   // --- CPU IMPLEMENTATION ---
-  let cpuMesh;
+  let cpuMesh: THREE.InstancedMesh;
   let dummy = new THREE.Object3D();
-  let cpuPositions;
-  let cpuVelocities;
+  let cpuPositions: Float32Array;
+  let cpuVelocities: Float32Array;
 
   function initCPU() {
     if (cpuMesh) {
@@ -123,7 +120,7 @@ export async function mount(container) {
     scene.add(cpuMesh);
   }
 
-  function updateCPU(t) {
+  function updateCPU(t: number) {
     if (!cpuMesh) return;
 
     const speed = PARAMS.speed || 1.0;
@@ -190,8 +187,8 @@ export async function mount(container) {
 
 
   // --- GPU IMPLEMENTATION (COMPUTE SHADER) ---
-  let gpuMesh;
-  let computeNode;
+  let gpuMesh: any;
+  let computeNode: any;
 
   function initGPU() {
     if (gpuMesh) {

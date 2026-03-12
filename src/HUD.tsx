@@ -18,7 +18,7 @@ const BODY_SIZES = {
 //   • item / - item   → bullet point
 //   plain text        → paragraph
 //   \n\n              → block separator
-function BodyContent({ body, bodyStyle = {}, isVisible, accentColor }) {
+function BodyContent({ body, bodyStyle = {}, isVisible, accentColor }: { body: string, bodyStyle?: { fontSize?: string, lineHeight?: number }, isVisible: boolean, accentColor: string }) {
     if (!body) return null;
     const { fontSize = 'md', lineHeight = 1.65 } = bodyStyle;
     const blocks = body.split('\n\n').map(b => b.trim()).filter(Boolean);
@@ -27,7 +27,7 @@ function BodyContent({ body, bodyStyle = {}, isVisible, accentColor }) {
     return (
         <div style={{
             fontFamily: 'JetBrains Mono, monospace',
-            fontSize: BODY_SIZES[fontSize] || BODY_SIZES.md,
+            fontSize: BODY_SIZES[fontSize as keyof typeof BODY_SIZES] || BODY_SIZES.md,
             fontWeight: 400,
             letterSpacing: '0.03em',
             color: 'rgba(255,255,255,0.9)',
@@ -125,7 +125,7 @@ const EFFECTS = [
 ];
 
 // ─── Effects Panel ─────────────────────────────────────────────────────────────
-function EffectsPanel({ activeEffects, toggleEffect, accentColor }) {
+function EffectsPanel({ activeEffects, toggleEffect, accentColor }: { activeEffects: Record<string, boolean>, toggleEffect: (key: string) => void, accentColor: string }) {
     return (
         <div style={{
             position: 'fixed',
@@ -194,9 +194,9 @@ function EffectsPanel({ activeEffects, toggleEffect, accentColor }) {
 }
 
 // ─── Main HUD ──────────────────────────────────────────────────────────────────
-export function HUD({ activeSlide, activeEffects, toggleEffect }) {
+export function HUD({ activeSlide, activeEffects, toggleEffect }: { activeSlide: number, activeEffects: Record<string, boolean>, toggleEffect: (key: string) => void }) {
     const [isVisible, setIsVisible] = useState(false);
-    const [content, setContent] = useState(null);
+    const [content, setContent] = useState<any>(null);
 
     useEffect(() => {
         if (activeSlide < 0 || activeSlide >= SLIDES.length) return;
@@ -235,8 +235,8 @@ export function HUD({ activeSlide, activeEffects, toggleEffect }) {
         sideStyles = { left: 'clamp(32px, 5vw, 64px)' };
     }
 
-    const panelStyles = {
-        position: 'absolute',
+    const panelStyles: React.CSSProperties = {
+        position: 'absolute' as const,
         top: pos.top,
         ...sideStyles,
         maxWidth: pos.width || (isCenter ? '900px' : '560px')
@@ -290,8 +290,8 @@ export function HUD({ activeSlide, activeEffects, toggleEffect }) {
                                 display: 'inline-block', marginTop: '24px', fontFamily: 'JetBrains Mono, monospace', fontSize: '0.6rem', fontWeight: 600, letterSpacing: '0.22em', textTransform: 'uppercase', border: `1px solid ${hexColor}44`, padding: '8px 16px', borderRadius: 0, transition: 'color 0.3s ease, border-color 0.3s ease', pointerEvents: 'all', cursor: 'pointer',
                                 color: hexColor
                             }}
-                            onMouseEnter={(e) => { e.target.style.color = '#fff'; e.target.style.borderColor = 'rgba(255,255,255,0.55)'; }}
-                            onMouseLeave={(e) => { e.target.style.color = hexColor; e.target.style.borderColor = `${hexColor}44`; }}
+                            onMouseEnter={(e) => { (e.target as HTMLElement).style.color = '#fff'; (e.target as HTMLElement).style.borderColor = 'rgba(255,255,255,0.55)'; }}
+                            onMouseLeave={(e) => { (e.target as HTMLElement).style.color = hexColor; (e.target as HTMLElement).style.borderColor = `${hexColor}44`; }}
                         >
                             {copy.cta}
                         </button>

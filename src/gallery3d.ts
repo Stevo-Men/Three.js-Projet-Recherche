@@ -35,13 +35,13 @@ const demos = [
     }
 ];
 
-let renderer, scene, camera, controls;
-let raycaster, mouse;
-let paintings = [];
-let currentDemoCleanup = null;
-let animationId;
+let renderer: THREE.WebGLRenderer, scene: THREE.Scene, camera: THREE.PerspectiveCamera, controls: OrbitControls;
+let raycaster: THREE.Raycaster, mouse: THREE.Vector2;
+let paintings: THREE.Mesh[] = [];
+let currentDemoCleanup: (() => void) | null = null;
+let animationId: number;
 
-export function initGallery(container) {
+export function initGallery(container: HTMLElement) {
     // 1. Setup Scene
     scene = new THREE.Scene();
     scene.background = new THREE.Color(0x101010);
@@ -104,7 +104,7 @@ export function initGallery(container) {
         const canvas = document.createElement('canvas');
         canvas.width = 256;
         canvas.height = 64;
-        const ctx = canvas.getContext('2d');
+        const ctx = canvas.getContext('2d')!;
         ctx.fillStyle = 'black';
         ctx.fillRect(0, 0, 256, 64);
         ctx.fillStyle = 'white';
@@ -154,12 +154,12 @@ export function initGallery(container) {
     }
     animate();
 
-    function onMouseMove(event) {
+    function onMouseMove(event: MouseEvent) {
         mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
         mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
     }
 
-    async function onClick(event) {
+    async function onClick(event: MouseEvent) {
         if (event.target !== renderer.domElement) return;
 
         mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
@@ -171,7 +171,7 @@ export function initGallery(container) {
         const intersects = raycaster.intersectObjects(paintings, true);
 
         if (intersects.length > 0) {
-            let target = intersects[0].object;
+            let target: THREE.Object3D | null = intersects[0].object;
             while (target && (!target.userData || !target.userData.demo)) {
                 target = target.parent;
             }
@@ -188,7 +188,7 @@ export function initGallery(container) {
         renderer.setSize(window.innerWidth, window.innerHeight);
     }
 
-    async function loadDemo(demo) {
+    async function loadDemo(demo: any) {
         cancelAnimationFrame(animationId);
         window.removeEventListener('mousemove', onMouseMove);
         window.removeEventListener('click', onClick);

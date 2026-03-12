@@ -3,9 +3,9 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { GUI } from 'three/examples/jsm/libs/lil-gui.module.min.js';
 
-let renderer, scene, camera, controls, gui;
-let animationId;
-let resizeObserver;
+let renderer: any, scene: THREE.Scene, camera: THREE.PerspectiveCamera, controls: OrbitControls, gui: GUI;
+let resizeObserver: ResizeObserver;
+let cleanupEvent: (() => void) | null = null;
 
 // Simulation Params
 const PARAMS = {
@@ -16,7 +16,7 @@ const PARAMS = {
     color: '#00ffff'
 };
 
-export async function mount(container) {
+export async function mount(container: HTMLElement) {
     if (!navigator.gpu) {
         container.innerHTML = `
             <div style="color: white; padding: 20px; font-family: sans-serif;">
@@ -28,8 +28,7 @@ export async function mount(container) {
     }
 
     // --- IMPORTS ---
-    let WebGPURenderer, storage, uniform, texture, time, Fn, vec2, vec3, vec4, float, int, uint, instanceIndex, positionLocal, uv, mix, dragging = false, mod, vertexIndex;
-    let pointer = new THREE.Vector2(-1000, -1000); // Off-screen default
+    let WebGPURenderer: any, storage: any, uniform: any, Fn: any, vec2: any, vec3: any, float: any, int: any, instanceIndex: any, positionLocal: any, mod: any, vertexIndex: any;
 
     try {
         const ThreeWebGPU = await import('three/webgpu');
@@ -38,23 +37,17 @@ export async function mount(container) {
         const ThreeTSL = await import('three/tsl');
         storage = ThreeTSL.storage;
         uniform = ThreeTSL.uniform;
-        texture = ThreeTSL.texture;
-        time = ThreeTSL.time;
         Fn = ThreeTSL.Fn;
         vec2 = ThreeTSL.vec2;
         vec3 = ThreeTSL.vec3;
-        vec4 = ThreeTSL.vec4;
         float = ThreeTSL.float;
         int = ThreeTSL.int;
-        uint = ThreeTSL.uint;
         instanceIndex = ThreeTSL.instanceIndex;
         positionLocal = ThreeTSL.positionLocal;
-        uv = ThreeTSL.uv;
-        mix = ThreeTSL.mix;
         mod = ThreeTSL.mod; // Use mod instead of remainder
         vertexIndex = ThreeTSL.vertexIndex;
 
-    } catch (e) {
+    } catch (e: any) {
         console.error(e);
         return;
     }
@@ -226,7 +219,7 @@ export async function mount(container) {
     const raycaster = new THREE.Raycaster();
     const plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0); // y=0 plane
 
-    const onPointerMove = (e) => {
+    const onPointerMove = (e: MouseEvent | PointerEvent) => {
         const ndc = new THREE.Vector2(
             (e.clientX / window.innerWidth) * 2 - 1,
             -(e.clientY / window.innerHeight) * 2 + 1
@@ -279,7 +272,7 @@ export async function mount(container) {
     resizeObserver.observe(container);
 
     // Store cleanup for unmount
-    mount.cleanup = () => {
+    cleanupEvent = () => {
         window.removeEventListener('pointermove', onPointerMove);
     };
 }
@@ -290,6 +283,6 @@ export function unmount() {
         renderer.dispose();
     }
     if (gui) gui.destroy();
-    if (mount.cleanup) mount.cleanup();
+    if (cleanupEvent) cleanupEvent();
     if (resizeObserver) resizeObserver.disconnect();
 }

@@ -1,6 +1,5 @@
 import React, { useRef } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
-import { Text } from '@react-three/drei';
 import * as THREE from 'three';
 import {
     EffectComposer, Bloom, DepthOfField,
@@ -15,12 +14,10 @@ import { WebGLScene } from './scenes/WebGLScene';
 import { WebGPUScene } from './scenes/WebGPUScene';
 import { ThreeJSScene } from './scenes/ThreeJSScene';
 import { AvenirScene } from './scenes/AvenirScene';
-import { SCENE_CAMS, SLIDES, SLIDE_COPY, SCENE_OFFSETS } from './data';
-
-const BODY_FONT = '/fonts/nord-minimal/Web Fonts/NORD-Regular.woff';
+import { SCENE_CAMS, SLIDES, SCENE_OFFSETS } from './data';
 
 // ─── Camera Manager ──────────────────────────────────────────────────────────
-function CameraManager({ activeSlide }) {
+function CameraManager({ activeSlide }: { activeSlide: number }) {
     const vec = new THREE.Vector3();
     const targetVec = new THREE.Vector3();
 
@@ -44,64 +41,10 @@ function CameraManager({ activeSlide }) {
     return null;
 }
 
-// ─── Slide-driven 3D body text ───────────────────────────────────────────────
-function SlideBody3D({ activeSlide }) {
-    const groupRef = useRef();
-    const targetPos = useRef(new THREE.Vector3());
-
-    useFrame(() => {
-        if (!groupRef.current) return;
-        const slide = SLIDES[activeSlide];
-        if (!slide?.bodyPos) {
-            groupRef.current.visible = false;
-            return;
-        }
-        const worldX = (SCENE_OFFSETS[slide.sceneId] || (slide.sceneId * 10)) + slide.bodyPos[0];
-        targetPos.current.set(worldX, slide.bodyPos[1], slide.bodyPos[2]);
-        groupRef.current.position.lerp(targetPos.current, 0.08);
-        groupRef.current.visible = true;
-    });
-
-    const slide = SLIDES[activeSlide];
-    const copy = SLIDE_COPY[activeSlide];
-    if (!slide?.bodyPos || !copy?.body) return null;
-
-    return (
-        <group ref={groupRef}>
-            <Text
-                position={[0, 0.55, 0]}
-                fontSize={0.22}
-                color={slide.hx}
-                anchorX="left"
-                font={BODY_FONT}
-                maxWidth={5}
-            >
-                {slide.title}
-            </Text>
-
-            <mesh position={[2.5, 0.35, 0]}>
-                <planeGeometry args={[5, 0.004]} />
-                <meshBasicMaterial color="#ffffff" transparent opacity={0.2} />
-            </mesh>
-
-            <Text
-                position={[0, 0.1, 0]}
-                fontSize={0.11}
-                color="#ffffff"
-                anchorX="left"
-                font={BODY_FONT}
-                maxWidth={5}
-                lineHeight={1.7}
-            >
-                {copy.body}
-            </Text>
-        </group>
-    );
-}
 
 // ─── Background Dust ──────────────────────────────────────────────────────────
 function BackgroundDust() {
-    const pointsRef = useRef();
+    const pointsRef = useRef<THREE.Points>(null);
     const { positions } = React.useMemo(() => {
         const p = [];
         for (let i = 0; i < 300; i++) {
@@ -114,14 +57,14 @@ function BackgroundDust() {
         return { positions: new Float32Array(p) };
     }, []);
 
-    useFrame((state, delta) => {
+    useFrame((_state, delta) => {
         if (pointsRef.current) pointsRef.current.rotation.y += delta * 0.02;
     });
 
     return (
         <points ref={pointsRef}>
             <bufferGeometry>
-                <bufferAttribute attach="attributes-position" count={300} array={positions} itemSize={3} />
+                <bufferAttribute attach="attributes-position" count={300} array={positions} itemSize={3} args={[positions, 3]} />
             </bufferGeometry>
             <pointsMaterial size={0.05} color={0xffffff} transparent opacity={0.1} />
         </points>
@@ -129,29 +72,29 @@ function BackgroundDust() {
 }
 
 // ─── Post Effects (conditionally active on ThreeJS slides only) ───────────────
-function PostEffects({ fx, isThreeJS }) {
+function PostEffects({ fx, isThreeJS }: { fx: Record<string, boolean>; isThreeJS: boolean }) {
     if (!isThreeJS) return null;
 
     return (
         <EffectComposer>
-            {fx.smaa && <SMAA />}
-            {fx.bloom && <Bloom luminanceThreshold={0.15} intensity={2.2} mipmapBlur />}
-            {fx.dof && <DepthOfField focusDistance={0.025} focalLength={0.06} bokehScale={4} />}
-            {fx.chromatic && (
+            {fx.smaa ? <SMAA /> : <></>}
+            {fx.bloom ? <Bloom luminanceThreshold={0.15} intensity={2.2} mipmapBlur /> : <></>}
+            {fx.dof ? <DepthOfField focusDistance={0.025} focalLength={0.06} bokehScale={4} /> : <></>}
+            {fx.chromatic ? (
                 <ChromaticAberration
                     blendFunction={BlendFunction.NORMAL}
                     offset={new THREE.Vector2(0.004, 0.004)}
                 />
-            )}
-            {fx.glitch && (
+            ) : <></>}
+            {fx.glitch ? (
                 <Glitch
                     delay={new THREE.Vector2(0.4, 1.0)}
                     duration={new THREE.Vector2(0.1, 0.25)}
                     strength={new THREE.Vector2(0.1, 0.25)}
                     mode={GlitchMode.SPORADIC}
                 />
-            )}
-            {fx.outline && (
+            ) : <></>}
+            {fx.outline ? (
                 <Outline
                     blur
                     visibleEdgeColor={0xffaa00}
@@ -159,14 +102,14 @@ function PostEffects({ fx, isThreeJS }) {
                     edgeStrength={6}
                     width={800}
                 />
-            )}
-            {fx.vignette && <Vignette eskil={false} offset={0.45} darkness={0.75} />}
+            ) : <></>}
+            {fx.vignette ? <Vignette eskil={false} offset={0.45} darkness={0.75} /> : <></>}
         </EffectComposer>
     );
 }
 
 // ─── Experience ───────────────────────────────────────────────────────────────
-export function Experience({ activeSlide, activeEffects }) {
+export function Experience({ activeSlide, activeEffects }: { activeSlide: number; activeEffects: Record<string, boolean> }) {
     const isThreeJS = SLIDES[activeSlide]?.sceneId === 4;
     const isAvenir = SLIDES[activeSlide]?.sceneId === 5;
 

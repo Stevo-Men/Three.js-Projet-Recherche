@@ -1,4 +1,4 @@
-import React, { useRef, useMemo, useEffect } from 'react';
+import { useRef, useMemo, useEffect } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { useGLTF, useTexture } from '@react-three/drei';
 import { Select } from '@react-three/postprocessing';
@@ -76,12 +76,13 @@ renderer.setAnimationLoop(() => {
 });`;
 
 // ─── Canvas code renderer ─────────────────────────────────────────────────────
-function createCodeTexture(code, accentHex = '#ffaa00') {
+function createCodeTexture(code: string, accentHex = '#ffaa00') {
     const W = 640, H = 480;
     const canvas = document.createElement('canvas');
     canvas.width = W;
     canvas.height = H;
     const ctx = canvas.getContext('2d');
+    if (!ctx) return new THREE.CanvasTexture(canvas);
 
     // Background
     ctx.fillStyle = '#0d1117';
@@ -97,7 +98,7 @@ function createCodeTexture(code, accentHex = '#ffaa00') {
     ctx.fillRect(0, 0, W, 32);
 
     // macOS-like window dots
-    const dots = [['#ff5f57', 14], ['#ffbd2e', 32], ['#28c940', 50]];
+    const dots: [string, number][] = [['#ff5f57', 14], ['#ffbd2e', 32], ['#28c940', 50]];
     dots.forEach(([color, x]) => {
         ctx.fillStyle = color;
         ctx.beginPath();
@@ -147,7 +148,7 @@ function createCodeTexture(code, accentHex = '#ffaa00') {
     };
 
     const lines = code.split('\n');
-    lines.forEach((line, i) => {
+    lines.forEach((line: string, i: number) => {
         const y = MARGIN_Y + i * LINE_H;
         if (y > H - 6) return;
 
@@ -200,9 +201,9 @@ function createCodeTexture(code, accentHex = '#ffaa00') {
             if (/^0x[0-9a-fA-F]+/.test(remaining)) {
                 const m = remaining.match(/^0x[0-9a-fA-F]+/);
                 ctx.fillStyle = C.number;
-                ctx.fillText(m[0], x, y);
-                x += ctx.measureText(m[0]).width;
-                remaining = remaining.slice(m[0].length);
+                ctx.fillText(m![0], x, y);
+                x += ctx.measureText(m![0]).width;
+                remaining = remaining.slice(m![0].length);
                 continue;
             }
 
@@ -210,9 +211,9 @@ function createCodeTexture(code, accentHex = '#ffaa00') {
             if (/^\d/.test(remaining)) {
                 const m = remaining.match(/^\d+(\.\d+)?/);
                 ctx.fillStyle = C.number;
-                ctx.fillText(m[0], x, y);
-                x += ctx.measureText(m[0]).width;
-                remaining = remaining.slice(m[0].length);
+                ctx.fillText(m![0], x, y);
+                x += ctx.measureText(m![0]).width;
+                remaining = remaining.slice(m![0].length);
                 continue;
             }
 
@@ -242,8 +243,8 @@ function createCodeTexture(code, accentHex = '#ffaa00') {
 }
 
 // ─── Floating code screen ─────────────────────────────────────────────────────
-function CodeScreen({ code, visible, position = [0, 0, 0], rotation = [0, 0, 0] }) {
-    const meshRef = useRef();
+function CodeScreen({ code, visible, position = [0, 0, 0], rotation = [0, 0, 0] }: { code: string, visible: boolean, position?: [number, number, number], rotation?: [number, number, number] }) {
+    const meshRef = useRef<THREE.Mesh<any, any>>(null);
     const texture = useMemo(() => {
         if (!code) return null;
         return createCodeTexture(code);
@@ -264,12 +265,13 @@ function CodeScreen({ code, visible, position = [0, 0, 0], rotation = [0, 0, 0] 
 }
 
 // ─── Floating logo screen ─────────────────────────────────────────────────────
-function LogoScreen({ visible, position = [0, 0, 0], rotation = [0, 0, 0] }) {
+function LogoScreen({ visible, position = [0, 0, 0], rotation = [0, 0, 0] }: { visible: boolean, position?: [number, number, number], rotation?: [number, number, number] }) {
     const texture = useTexture('/images/threejs_logo.png');
 
     if (!visible) return null;
 
-    const aspect = texture.image ? texture.image.width / texture.image.height : 1.5;
+    const textureImage = texture.image as { width: number, height: number } | undefined;
+    const aspect = textureImage ? textureImage.width / textureImage.height : 1.5;
     let logoHeight = 1.4;
     let logoWidth = logoHeight * aspect;
     if (logoWidth > 3.2) { logoWidth = 3.2; logoHeight = logoWidth / aspect; }
@@ -289,8 +291,8 @@ function LogoScreen({ visible, position = [0, 0, 0], rotation = [0, 0, 0] }) {
 }
 
 // ─── Demo torus — live result of the code snippet ─────────────────────────────
-function DemoCube({ visible, showMaterials, showLights, position = [0, 0.8, 0.94] }) {
-    const meshRef = useRef();
+function DemoCube({ visible, showMaterials, showLights, position = [0, 0.8, 0.94] }: { visible: boolean, showMaterials: boolean, showLights: boolean, position?: [number, number, number] }) {
+    const meshRef = useRef<THREE.Mesh<any, any>>(null);
 
     useFrame((state) => {
         if (meshRef.current && visible) {
@@ -321,10 +323,10 @@ function DemoCube({ visible, showMaterials, showLights, position = [0, 0.8, 0.94
 }
 
 // ─── Main ThreeJSScene ────────────────────────────────────────────────────────
-export function ThreeJSScene({ activeSlide, activeEffects = {} }) {
+export function ThreeJSScene({ activeSlide, activeEffects = {} }: { activeSlide: number, activeEffects?: Record<string, boolean> }) {
     const hx = SLIDES[6].hx;
     const { scene, materials } = useGLTF('/models/car_lowpoly/scene.gltf');
-    const groundRef = useRef();
+    const groundRef = useRef<THREE.Mesh<any, any>>(null);
 
     // Code / logo screens (slides 6–10)
     const showLogo = activeSlide === 6;
@@ -340,23 +342,23 @@ export function ThreeJSScene({ activeSlide, activeEffects = {} }) {
     // Fix wheel texture wrapping on mount
 
 
-    // Toggle wireframe ↔ full materials on the car
     useEffect(() => {
         if (scene) {
             scene.traverse((child) => {
-                if (child.isMesh) {
-                    if (!child.userData.originalMaterial) {
-                        child.userData.originalMaterial = child.material;
+                const mesh = child as THREE.Mesh<any, any>;
+                if (mesh.isMesh) {
+                    if (!mesh.userData.originalMaterial) {
+                        mesh.userData.originalMaterial = mesh.material;
                     }
                     if (!showMaterials) {
-                        if (!child.userData.wireframeMaterial) {
-                            child.userData.wireframeMaterial = new THREE.MeshBasicMaterial({
+                        if (!mesh.userData.wireframeMaterial) {
+                            mesh.userData.wireframeMaterial = new THREE.MeshBasicMaterial({
                                 color: hx, wireframe: true, transparent: true, opacity: 0.15
                             });
                         }
-                        child.material = child.userData.wireframeMaterial;
+                        mesh.material = mesh.userData.wireframeMaterial;
                     } else {
-                        child.material = child.userData.originalMaterial;
+                        mesh.material = mesh.userData.originalMaterial;
                     }
                 }
             });
@@ -364,24 +366,24 @@ export function ThreeJSScene({ activeSlide, activeEffects = {} }) {
     }, [scene, showMaterials, hx]);
 
     // Scroll ground + animate wheel textures
-    useFrame((state, delta) => {
+    useFrame((_state, delta) => {
         if (groundRef.current) {
             groundRef.current.position.x -= delta * 5.0;
             if (groundRef.current.position.x <= -0.5) groundRef.current.position.x += 0.5;
         }
         if (materials) {
             Object.values(materials).forEach(mat => {
-                if ((mat.name.includes('pneu') || mat.name.includes('material_0')) && mat.map) {
-                    mat.map.offset.y -= delta * 1.5;
-                    mat.map.needsUpdate = true;
+                if ((mat.name.includes('pneu') || mat.name.includes('material_0')) && (mat as any).map) {
+                    (mat as any).map.offset.y -= delta * 1.5;
+                    (mat as any).map.needsUpdate = true;
                 }
             });
         }
     });
 
     // Shared position / rotation for all floating screens
-    const SCREEN_POS = [0, 1.6, -1];
-    const SCREEN_ROT = [0, 0, 0];
+    const SCREEN_POS: [number, number, number] = [0, 1.6, -1];
+    const SCREEN_ROT: [number, number, number] = [0, 0, 0];
 
     return (
         <group position={[70, -1, 0]}>

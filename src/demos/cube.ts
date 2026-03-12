@@ -1,11 +1,11 @@
 
 import * as THREE from 'three';
 
-let scene, camera, renderer, cube;
-let animationId;
-let resizeObserver;
+let scene: THREE.Scene, camera: THREE.PerspectiveCamera, renderer: THREE.WebGLRenderer, cube: THREE.Mesh;
+let animationId: number;
+let resizeObserver: ResizeObserver;
 
-export function mount(container) {
+export function mount(container: HTMLElement) {
     // 1. Scene
     scene = new THREE.Scene();
     scene.background = new THREE.Color(0x111111);
@@ -65,6 +65,12 @@ export function unmount() {
     // Optional: Dispose geometry/material
     if (cube) {
         if (cube.geometry) cube.geometry.dispose();
-        if (cube.material) cube.material.dispose();
+        if (cube.material) {
+            if (Array.isArray(cube.material)) {
+                cube.material.forEach(m => m.dispose());
+            } else {
+                cube.material.dispose();
+            }
+        }
     }
 }

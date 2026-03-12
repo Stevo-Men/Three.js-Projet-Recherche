@@ -1,4 +1,4 @@
-import React, { useRef, useMemo } from 'react';
+import { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { SLIDES } from '../data';
@@ -7,15 +7,15 @@ const HX = SLIDES[5].hx; // '#bb44ff'
 
 export function WebGPUScene() {
 
-    const cpuRef = useRef();
-    const cpuRingRef = useRef();
-    const cmdPacket = useRef();          // single CPU→GPU command
+    const cpuRef = useRef<THREE.Mesh<any, any>>(null);
+    const cpuRingRef = useRef<THREE.Mesh<any, any>>(null);
+    const cmdPacket = useRef<THREE.Mesh<any, any>>(null);          // single CPU→GPU command
     const cmdProgress = useRef(0);
 
     // 4×4 GPU grid — same layout as WebGLScene
     const gpuPositions = useMemo(() => {
         const cols = 4, rows = 4, spacingX = 0.70, spacingZ = 0.65;
-        const out = [];
+        const out: THREE.Vector3[] = [];
         for (let i = 0; i < cols; i++)
             for (let j = 0; j < rows; j++)
                 out.push(new THREE.Vector3(
@@ -32,7 +32,7 @@ export function WebGPUScene() {
     // ── Horizontal GPU↔GPU inter-connections (Storage Buffer loops) ────────
     // Each cube connects to its right and bottom neighbour → mesh-like circuit
     const gpuLinks = useMemo(() => {
-        const links = [];
+        const links: { line: THREE.Line<any, any>; from: number; to: number }[] = [];
         const cols = 4, rows = 4;
         const mat = new THREE.LineBasicMaterial({ color: HX, transparent: true, opacity: 0.25 });
         for (let i = 0; i < cols; i++) {
@@ -64,16 +64,17 @@ export function WebGPUScene() {
     // ── Fast packets flowing GPU↔GPU ───────────────────────────────────────
     // 12 packets racing along the horizontal links, much faster than CPU packets
     const gpuPackets = useMemo(() => {
-        return gpuLinks.map((_, i) => ({
-            progress: Math.random(),
+        return gpuLinks.map(() => ({
+            active: false,
+            progress: 0,
             speed: 0.55 + Math.random() * 0.7,   // ~3× faster than CPU packets
             dir: Math.random() > 0.5 ? 1 : -1,   // bidirectional
         }));
     }, [gpuLinks]);
 
     // Refs for GPU packets and cubes
-    const gpuPacketRefs = useRef([]);
-    const cubeRefs = useRef([]);
+    const gpuPacketRefs = useRef<(THREE.Mesh<any, any> | null)[]>([]);
+    const cubeRefs = useRef<(THREE.Mesh<any, any> | null)[]>([]);
 
     // Single thin CPU→GPU line
     const cpuLine = useMemo(() => {
@@ -84,9 +85,6 @@ export function WebGPUScene() {
         ]);
         return new THREE.Line(geo, mat);
     }, [CPU_POS]);
-
-    const normalColor = useMemo(() => new THREE.Color(HX), []);
-    const pulseColor = useMemo(() => new THREE.Color('#ffffff'), []);
 
     useFrame((state, delta) => {
         const t = state.clock.elapsedTime;

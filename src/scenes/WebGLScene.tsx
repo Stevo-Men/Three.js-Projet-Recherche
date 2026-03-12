@@ -1,18 +1,18 @@
-import React, { useRef, useMemo } from 'react';
+import { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { SLIDES } from '../data';
 
 const RED = new THREE.Color('#ff2222');
 
-export function WebGLScene({ activeSlide }) {
+export function WebGLScene({ activeSlide }: { activeSlide: number }) {
     const hx = SLIDES[2].hx;
     const normalColor = useMemo(() => new THREE.Color(hx), [hx]);
-    const cpuRef = useRef();
-    const cpuRingRef = useRef();
-    const cpuRing2Ref = useRef();
-    const packetRefs = useRef([]);
-    const cubeRefs = useRef([]);
+    const cpuRef = useRef<THREE.Mesh<any, any>>(null);
+    const cpuRingRef = useRef<THREE.Mesh<any, any>>(null);
+    const cpuRing2Ref = useRef<THREE.Mesh<any, any>>(null);
+    const packetRefs = useRef<(THREE.Mesh<any, any> | null)[]>([]);
+    const cubeRefs = useRef<(THREE.Mesh<any, any> | null)[]>([]);
 
     // CPU sits at top-center
     const CPU_POS = useMemo(() => new THREE.Vector3(0, 1.0, 0), []);
@@ -53,7 +53,7 @@ export function WebGLScene({ activeSlide }) {
         });
     }, [gpuPositions, hx, CPU_POS]);
 
-    useFrame((state, delta) => {
+    useFrame((_state, delta) => {
         // Is this the "La limite" sub-slide? (sceneId 2, idx 3)
         const slide = SLIDES[activeSlide];
         const isLimitSlide = slide && slide.sceneId === 2 && slide.idx === 3;

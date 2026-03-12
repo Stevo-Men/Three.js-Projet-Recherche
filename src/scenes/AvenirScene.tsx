@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect, useCallback } from 'react';
+import { useRef, useState, useEffect, useCallback } from 'react';
 import * as THREE from 'three';
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -18,9 +18,9 @@ const TABS = [
 /* ═══════════════════════════════════════════════════════════════════════════
    SHARED PLATFORM — glass disk + glow ring under every mini-scene
 ═══════════════════════════════════════════════════════════════════════════ */
-function buildPlatform(accentHex) {
+function buildPlatform(accentHex: string | number) {
     const group = new THREE.Group();
-    const disposables = [];
+    const disposables: { dispose: () => void }[] = [];
 
     const diskGeo = new THREE.CylinderGeometry(1.8, 1.8, 0.06, 64);
     const diskMat = new THREE.MeshStandardMaterial({
@@ -53,17 +53,17 @@ function buildPlatform(accentHex) {
 /* ═══════════════════════════════════════════════════════════════════════════
    TAB 0 — E-COMMERCE SNEAKER  (drag-to-rotate)
 ═══════════════════════════════════════════════════════════════════════════ */
-function buildEcommerceScene(accent) {
+function buildEcommerceScene(accent: string | number) {
     const group = new THREE.Group();
-    const geoSet = new Set();
-    const matArr = [];
+    const geoSet = new Set<THREE.BufferGeometry>();
+    const matArr: THREE.Material[] = [];
 
-    function G(g) { geoSet.add(g); return g; }
-    function M(opts) {
+    function G(g: THREE.BufferGeometry) { geoSet.add(g); return g; }
+    function M(opts: THREE.MeshStandardMaterialParameters) {
         const m = new THREE.MeshStandardMaterial(opts);
         matArr.push(m); return m;
     }
-    function add(geo, mat, px = 0, py = 0, pz = 0, rx = 0, ry = 0, rz = 0) {
+    function add(geo: THREE.BufferGeometry, mat: THREE.Material, px = 0, py = 0, pz = 0, rx = 0, ry = 0, rz = 0) {
         const mesh = new THREE.Mesh(G(geo), mat);
         mesh.position.set(px, py, pz);
         mesh.rotation.set(rx, ry, rz);
@@ -105,12 +105,12 @@ function buildEcommerceScene(accent) {
     let prev = { x: 0, y: 0 };
     let vel = { x: 0, y: 0 };
 
-    function onMouseDown(e) {
+    function onMouseDown(e: MouseEvent) {
         dragging = true;
         prev = { x: e.clientX, y: e.clientY };
         vel = { x: 0, y: 0 };
     }
-    function onMouseMove(e) {
+    function onMouseMove(e: MouseEvent) {
         if (!dragging) return;
         const dx = (e.clientX - prev.x) * 0.010;
         const dy = (e.clientY - prev.y) * 0.010;
@@ -121,7 +121,7 @@ function buildEcommerceScene(accent) {
     }
     function onMouseUp() { dragging = false; }
 
-    function update(elapsed) {
+    function update(elapsed: number) {
         group.position.y = Math.sin(elapsed * 1.1) * 0.08;
         if (!dragging) {
             group.rotation.y += vel.y;
@@ -140,16 +140,16 @@ function buildEcommerceScene(accent) {
 /* ═══════════════════════════════════════════════════════════════════════════
    TAB 1 — ARCHITECTURE BUILDING (wireframe overlay, auto-rotate)
 ═══════════════════════════════════════════════════════════════════════════ */
-function buildArchScene(accent) {
+function buildArchScene(accent: string | number) {
     const group = new THREE.Group();
-    const geoSet = new Set();
-    const matArr = [];
+    const geoSet = new Set<THREE.BufferGeometry>();
+    const matArr: THREE.Material[] = [];
 
-    function G(g) { geoSet.add(g); return g; }
-    function solid(g, pos) {
+    function G(g: THREE.BufferGeometry) { geoSet.add(g); return g; }
+    function solid(g: THREE.BufferGeometry, pos: [number, number, number]) {
         const m = new THREE.Mesh(G(g), solidMat); m.position.set(...pos); group.add(m);
     }
-    function wire(g, pos) {
+    function wire(g: THREE.BufferGeometry, pos: [number, number, number]) {
         const m = new THREE.Mesh(G(g), wireMat); m.position.set(...pos); group.add(m);
     }
 
@@ -187,7 +187,7 @@ function buildArchScene(accent) {
         }
     }
 
-    function update(elapsed) {
+    function update(elapsed: number) {
         group.position.y = Math.sin(elapsed * 0.65) * 0.07;
         group.rotation.y += 0.0025;
     }
@@ -201,10 +201,10 @@ function buildArchScene(accent) {
 /* ═══════════════════════════════════════════════════════════════════════════
    TAB 2 — SCIENCE GLOBE (200 pulsing surface markers)
 ═══════════════════════════════════════════════════════════════════════════ */
-function buildScienceScene(accent) {
+function buildScienceScene(accent: string | number) {
     const group = new THREE.Group();
-    const geoSet = new Set();
-    const matArr = [];
+    const geoSet = new Set<THREE.BufferGeometry>();
+    const matArr: THREE.Material[] = [];
 
     const ac = new THREE.Color(accent);
 
@@ -227,7 +227,7 @@ function buildScienceScene(accent) {
     geoSet.add(markerGeo);
     matArr.push(markerMat);
 
-    const markers = [];
+    const markers: THREE.Mesh[] = [];
     for (let i = 0; i < 200; i++) {
         const phi = Math.acos(2 * Math.random() - 1);
         const theta = 2 * Math.PI * Math.random();
@@ -238,7 +238,7 @@ function buildScienceScene(accent) {
         markers.push(m);
     }
 
-    function update(elapsed) {
+    function update(elapsed: number) {
         group.position.y = Math.sin(elapsed * 0.80) * 0.07;
         group.rotation.y += 0.003;
         markers.forEach(m => {
@@ -256,13 +256,13 @@ function buildScienceScene(accent) {
 /* ═══════════════════════════════════════════════════════════════════════════
    TAB 3 — GAMING GEMS (icosahedrons bobbing + click-to-burst)
 ═══════════════════════════════════════════════════════════════════════════ */
-function buildGamingScene(accent) {
+function buildGamingScene(_accent: string | number) {
     const group = new THREE.Group();
-    const geoSet = new Set();
-    const matArr = [];
+    const geoSet = new Set<THREE.BufferGeometry>();
+    const matArr: THREE.Material[] = [];
 
     const GEM_COLORS = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#dda0dd', '#ffd93d'];
-    const GEM_POSITIONS = [
+    const GEM_POSITIONS: [number, number, number][] = [
         [-0.90, 0.00, 0.20],
         [0.90, 0.10, 0.20],
         [0.00, 0.20, -0.45],
@@ -296,9 +296,9 @@ function buildGamingScene(accent) {
 
     const partGeo = new THREE.SphereGeometry(0.045, 4, 4);
     geoSet.add(partGeo);
-    const particles = []; // { mesh, vel, life, mat }
+    const particles: { mesh: THREE.Mesh, vel: THREE.Vector3, life: number, mat: THREE.Material }[] = [];
 
-    function burstGem(idx) {
+    function burstGem(idx: number) {
         const gem = gems[idx];
         if (!gem.userData.alive) return;
         gem.userData.alive = false;
@@ -323,7 +323,7 @@ function buildGamingScene(accent) {
         setTimeout(() => { gem.visible = true; gem.userData.alive = true; }, 2200);
     }
 
-    function update(elapsed) {
+    function update(elapsed: number) {
         group.position.y = Math.sin(elapsed * 0.70) * 0.06;
         gems.forEach(gem => {
             if (gem.userData.alive) {
@@ -350,10 +350,10 @@ function buildGamingScene(accent) {
         }
     }
 
-    function onClick(raycaster) {
+    function onClick(raycaster: THREE.Raycaster) {
         const hits = raycaster.intersectObjects(gems);
         if (hits.length) {
-            const idx = gems.indexOf(hits[0].object);
+            const idx = gems.indexOf(hits[0].object as any);
             if (idx !== -1) burstGem(idx);
         }
     }
@@ -367,10 +367,10 @@ function buildGamingScene(accent) {
 /* ═══════════════════════════════════════════════════════════════════════════
    TAB 4 — IA / ML NEURAL NETWORK (3 layers, wave-opacity connections)
 ═══════════════════════════════════════════════════════════════════════════ */
-function buildNNScene(accent) {
+function buildNNScene(accent: string | number) {
     const group = new THREE.Group();
-    const geoSet = new Set();
-    const matArr = [];
+    const geoSet = new Set<THREE.BufferGeometry>();
+    const matArr: THREE.Material[] = [];
 
     const ac = new THREE.Color(accent);
     const LAYERS = [4, 6, 4];
@@ -381,7 +381,7 @@ function buildNNScene(accent) {
     geoSet.add(nGeo);
 
     const allNeurons = LAYERS.map((count, li) => {
-        const layer = [];
+        const layer: THREE.Mesh[] = [];
         for (let ni = 0; ni < count; ni++) {
             const y = (ni - (count - 1) / 2) * 0.57;
             const mat = new THREE.MeshStandardMaterial({
@@ -400,7 +400,7 @@ function buildNNScene(accent) {
     });
 
     // Connections between adjacent layers
-    const connMats = [];
+    const connMats: { mat: THREE.Material, idx: number }[] = [];
     for (let li = 0; li < LAYERS.length - 1; li++) {
         allNeurons[li].forEach(n1 => {
             allNeurons[li + 1].forEach(n2 => {
@@ -418,12 +418,12 @@ function buildNNScene(accent) {
         });
     }
 
-    function update(elapsed) {
+    function update(elapsed: number) {
         group.position.y = Math.sin(elapsed * 0.90) * 0.07;
         group.rotation.y = Math.sin(elapsed * 0.28) * 0.22;
         allNeurons.flat().forEach(n => {
             const pulse = 0.5 + 0.5 * Math.sin(elapsed * 2.6 + n.userData.phase);
-            n.material.emissiveIntensity = 0.30 + pulse * 0.80;
+            (n.material as THREE.MeshStandardMaterial).emissiveIntensity = 0.30 + pulse * 0.80;
             n.scale.setScalar(0.88 + pulse * 0.24);
         });
         connMats.forEach(({ mat, idx }) => {
@@ -442,8 +442,8 @@ function buildNNScene(accent) {
 ═══════════════════════════════════════════════════════════════════════════ */
 function buildLimitsScene() {
     const group = new THREE.Group();
-    const geoSet = new Set();
-    const matArr = [];
+    const geoSet = new Set<THREE.BufferGeometry>();
+    const matArr: THREE.Material[] = [];
 
     const COLORS = ['#ff6b6b', '#ffd93d', '#ff9a3c', '#c44dff', '#45b7d1'];
 
@@ -479,7 +479,7 @@ function buildLimitsScene() {
         return { cage, sphere };
     });
 
-    function update(elapsed) {
+    function update(elapsed: number) {
         group.position.y = Math.sin(elapsed * 0.60) * 0.06;
         cells.forEach(({ cage, sphere }, i) => {
             const { cx, cy, phase } = sphere.userData;
@@ -507,8 +507,8 @@ function buildLimitsScene() {
 ═══════════════════════════════════════════════════════════════════════════ */
 function buildFutureScene() {
     const group = new THREE.Group();
-    const geoSet = new Set();
-    const matArr = [];
+    const geoSet = new Set<THREE.BufferGeometry>();
+    const matArr: THREE.Material[] = [];
 
     const accent = '#2eb8f5';
     const ac = new THREE.Color(accent);
@@ -548,7 +548,7 @@ function buildFutureScene() {
     group.add(core);
 
     // 12 ray lines shooting outward from core
-    const rayPts = [];
+    const rayPts: THREE.Vector3[] = [];
     for (let i = 0; i < 12; i++) {
         const phi = Math.acos(2 * Math.random() - 1);
         const theta = 2 * Math.PI * Math.random();
@@ -566,7 +566,7 @@ function buildFutureScene() {
     matArr.push(rayMat);
     group.add(new THREE.LineSegments(rayGeo, rayMat));
 
-    function update(elapsed) {
+    function update(elapsed: number) {
         points.rotation.y = elapsed * 0.18;
         points.rotation.x = elapsed * 0.04;
         core.rotation.y = elapsed * 0.55;
@@ -585,14 +585,14 @@ function buildFutureScene() {
 /* ═══════════════════════════════════════════════════════════════════════════
    MAIN COMPONENT
 ═══════════════════════════════════════════════════════════════════════════ */
-export function AvenirScene({ activeSlide, isVisible }) {
-    const canvasRef = useRef(null);
-    const threeRef = useRef(null);   // { renderer, scene, camera, clock }
-    const bundleRef = useRef(null);   // current SceneBundle
-    const platRef = useRef(null);   // current platform
-    const visRef = useRef(false);  // mirrors isVisible for the RAF
-    const animIdRef = useRef(null);
-    const activeTabRef = useRef(0);      // tracks tab without closing over state
+export function AvenirScene({ activeSlide, isVisible }: { activeSlide: number, isVisible: boolean }) {
+    const canvasRef = useRef<HTMLCanvasElement>(null);
+    const threeRef = useRef<{ renderer: THREE.WebGLRenderer, scene: THREE.Scene, camera: THREE.PerspectiveCamera, clock: THREE.Clock } | null>(null);
+    const bundleRef = useRef<any>(null);
+    const platRef = useRef<any>(null);
+    const visRef = useRef(false);
+    const animIdRef = useRef<number | null>(null);
+    const activeTabRef = useRef(0);
 
     const [activeTab, setActiveTab] = useState(0);
     const isSlide12 = activeSlide === 12;
@@ -645,7 +645,9 @@ export function AvenirScene({ activeSlide, isVisible }) {
         threeRef.current = { renderer, scene, camera, clock };
 
         return () => {
-            cancelAnimationFrame(animIdRef.current);
+            if (animIdRef.current !== null) {
+                cancelAnimationFrame(animIdRef.current);
+            }
             window.removeEventListener('resize', resize);
             bundleRef.current?.dispose();
             platRef.current?.dispose();
@@ -658,7 +660,7 @@ export function AvenirScene({ activeSlide, isVisible }) {
     useEffect(() => { visRef.current = isVisible; }, [isVisible]);
 
     /* ── Scene loader ────────────────────────────────────────────────────── */
-    const loadScene = useCallback((slideNum, tabIdx) => {
+    const loadScene = useCallback((slideNum: number, tabIdx: number) => {
         const three = threeRef.current;
         if (!three) return;
         const { scene } = three;
@@ -712,7 +714,7 @@ export function AvenirScene({ activeSlide, isVisible }) {
     }, [activeSlide, isVisible, loadScene]);
 
     /* ── Tab switching with fade ─────────────────────────────────────────── */
-    const switchTab = useCallback((newIdx) => {
+    const switchTab = useCallback((newIdx: number) => {
         if (newIdx === activeTabRef.current) return;
         const canvas = canvasRef.current;
         if (canvas) canvas.style.opacity = '0';
@@ -729,8 +731,8 @@ export function AvenirScene({ activeSlide, isVisible }) {
         const canvas = canvasRef.current;
         if (!canvas || !isVisible || activeSlide !== 12 || activeTab !== 0) return;
 
-        const onDown = e => bundleRef.current?.onMouseDown?.(e);
-        const onMove = e => bundleRef.current?.onMouseMove?.(e);
+        const onDown = (e: MouseEvent) => bundleRef.current?.onMouseDown?.(e);
+        const onMove = (e: MouseEvent) => bundleRef.current?.onMouseMove?.(e);
         const onUp = () => bundleRef.current?.onMouseUp?.();
 
         canvas.addEventListener('mousedown', onDown);
@@ -748,7 +750,7 @@ export function AvenirScene({ activeSlide, isVisible }) {
         const canvas = canvasRef.current;
         if (!canvas || !isVisible || activeSlide !== 12 || activeTab !== 3) return;
 
-        const onClick = e => {
+        const onClick = (e: MouseEvent) => {
             const three = threeRef.current;
             if (!three || !bundleRef.current?.onClick) return;
             const rect = canvas.getBoundingClientRect();

@@ -5,10 +5,19 @@ import { SLIDES } from '../data';
 
 export function PluginScene() {
     const hx = SLIDES[1].hx;
-    const groupRef = useRef();
+    const groupRef = useRef<THREE.Group>(null);
+
+    interface BoxData {
+        position: [number, number, number];
+        rotation: [number, number, number];
+        scale: [number, number, number];
+        material: THREE.Material;
+        speedX: number;
+        speedY: number;
+    }
 
     const boxes = React.useMemo(() => {
-        const items = [];
+        const items: BoxData[] = [];
         const matBroken = new THREE.MeshBasicMaterial({ color: hx, wireframe: true, transparent: true, opacity: 0.15 });
         const matSolid = new THREE.MeshBasicMaterial({ color: hx, transparent: true, opacity: 0.8 });
 
@@ -35,7 +44,7 @@ export function PluginScene() {
         return items;
     }, [hx]);
 
-    useFrame((state, delta) => {
+    useFrame((_state, delta) => {
         if (groupRef.current) {
             groupRef.current.children.forEach((child, i) => {
                 child.rotation.x += boxes[i].speedX * delta;
