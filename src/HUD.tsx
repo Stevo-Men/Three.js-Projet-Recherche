@@ -4,6 +4,7 @@ import './style.css';
 
 import BodyContent from './components/BodyContent';
 import EffectsPanel from './components/EffectsPanel';
+import CodePanel from './components/CodePanel';
 
 // ─── Structured body renderer ──────────────────────────────────────────────────
 // Format conventions for body strings in data.js:
@@ -60,6 +61,29 @@ export function HUD({ activeSlide, activeEffects, toggleEffect }: { activeSlide:
         top: pos.top,
         ...sideStyles,
         maxWidth: pos.width || (isCenter ? '900px' : '560px')
+    };
+
+    // Table/Code panels can define their own positions, otherwise fallback to right side
+    const tablePos = pos.tablePos || { side: 'right', top: '18%' };
+    const codePos = pos.codePos || { side: 'right', top: '12%' };
+
+    const getPanelStyles = (p: any, defaultMaxWidth: string) => {
+        const isR = p.side === 'right';
+        const isC = p.side === 'center';
+        let sStyles = {};
+        if (isC) sStyles = { left: '50%', transform: 'translateX(-50%)', width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' };
+        else if (isR) sStyles = { right: 'clamp(40px, 4vw, 80px)' };
+        else sStyles = { left: 'clamp(40px, 4vw, 80px)' };
+
+        return {
+            position: 'absolute' as const,
+            top: p.top,
+            ...sStyles,
+            maxWidth: defaultMaxWidth,
+            width: 'clamp(360px, 35vw, 580px)',
+            opacity: isVisible ? 1 : 0,
+            transition: 'opacity 0.55s ease 0.3s',
+        };
     };
 
     // paragraphs no longer needed — BodyContent handles parsing
@@ -126,6 +150,104 @@ export function HUD({ activeSlide, activeEffects, toggleEffect }: { activeSlide:
                     toggleEffect={toggleEffect}
                     accentColor={hexColor}
                 />
+            )}
+
+            {/* Data table panel */}
+            {copy.table && (
+                <div
+                    className={`sc-panel ${isVisible ? 'sc-visible' : 'sc-hidden'}`}
+                    style={{ ...getPanelStyles(tablePos, '640px'), transitionDelay: '0.35s' }}
+                >
+                    <div style={{
+                        borderLeft: `1px solid ${hexColor}55`,
+                        paddingLeft: '20px',
+                    }}>
+                        <div style={{
+                            fontFamily: 'JetBrains Mono, monospace',
+                            fontSize: 'clamp(0.65rem, 1vw, 0.78rem)',
+                            fontWeight: 400,
+                            letterSpacing: '0.2em',
+                            textTransform: 'uppercase' as const,
+                            color: 'rgba(255,255,255,0.38)',
+                            marginBottom: '14px',
+                        }}>
+
+                        </div>
+
+                        <table style={{
+                            borderCollapse: 'collapse',
+                            width: '100%',
+                            fontFamily: 'JetBrains Mono, monospace',
+                            fontSize: 'clamp(0.78rem, 1.1vw, 0.95rem)',
+                        }}>
+                            <thead>
+                                <tr>
+                                    {copy.table.headers.map((h: string, hi: number) => (
+                                        <th key={hi} style={{
+                                            textAlign: 'left',
+                                            padding: '8px 14px',
+                                            borderBottom: `1px solid ${hexColor}55`,
+                                            color: hexColor,
+                                            fontWeight: 600,
+                                            letterSpacing: '0.08em',
+                                            fontSize: '0.9em',
+                                            whiteSpace: 'nowrap',
+                                        }}>
+                                            {h}
+                                        </th>
+                                    ))}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {copy.table.rows.map((row: string[], ri: number) => (
+                                    <tr
+                                        key={ri}
+                                        style={{
+                                            opacity: isVisible ? 1 : 0,
+                                            transition: `opacity 0.45s ease ${0.45 + ri * 0.1}s`,
+                                        }}
+                                    >
+                                        {row.map((cell: string, ci: number) => (
+                                            <td key={ci} style={{
+                                                padding: '10px 14px',
+                                                borderBottom: '1px solid rgba(255,255,255,0.06)',
+                                                color: ci === 0
+                                                    ? hexColor
+                                                    : ci === 1
+                                                        ? 'rgba(255,255,255,0.55)'
+                                                        : 'rgba(255,255,255,0.85)',
+                                                fontWeight: ci === 0 ? 600 : 400,
+                                                whiteSpace: ci < 2 ? 'nowrap' : 'normal',
+                                                lineHeight: 1.5,
+                                            }}>
+                                                {cell}
+                                            </td>
+                                        ))}
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            )}
+
+            {/* Custom IDE-style code panel */}
+            {copy.code && (
+                <div
+                    className={`sc-panel ${isVisible ? 'sc-visible' : 'sc-hidden'}`}
+                    style={getPanelStyles(codePos, '580px')}
+                >
+                    <div style={{
+                        background: 'rgba(18, 18, 24, 0.92)',
+                        borderRadius: '8px',
+                        border: `1px solid ${hexColor}22`,
+                        overflow: 'hidden',
+                        backdropFilter: 'blur(12px)',
+                        boxShadow: `0 8px 32px rgba(0,0,0,0.5), inset 0 1px 0 ${hexColor}11`,
+                    }}>
+                        <CodePanel code={copy.code} isVisible={isVisible} accentColor={hexColor} />
+                    </div>
+                </div>
             )}
         </div>
     );
