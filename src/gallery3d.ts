@@ -1,9 +1,9 @@
 
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
-import * as ParticlesDemo from './demos/particles.js';
-import * as CubeDemo from './demos/cube.js';
-import * as WaterDemo from './demos/water.js';
+import * as ParticlesDemo from '../public/demos/particles.js';
+import * as CubeDemo from '../public/demos/cube.js';
+import * as WaterDemo from '../public/demos/water.js';
 
 const demos = [
     {
