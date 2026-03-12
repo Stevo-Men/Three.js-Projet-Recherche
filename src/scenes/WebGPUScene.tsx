@@ -1,15 +1,16 @@
-import { useRef, useMemo } from 'react';
+import { useRef, useMemo, useState } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { SLIDES } from '../data';
+import { WebGPUCpu } from '../components/3d/webgpu/WebGPUCpu';
+import { WebGPUWorker } from '../components/3d/webgpu/WebGPUWorker';
+import { WebGPULink } from '../components/3d/webgpu/WebGPULink';
 
 const HX = SLIDES[5].hx; // '#bb44ff'
 
 export function WebGPUScene() {
 
-    const cpuRef = useRef<THREE.Mesh<any, any>>(null);
-    const cpuRingRef = useRef<THREE.Mesh<any, any>>(null);
-    const cmdPacket = useRef<THREE.Mesh<any, any>>(null);          // single CPU→GPU command
+    const cmdPacket = useRef<THREE.Mesh<any, any>>(null);
     const cmdProgress = useRef(0);
 
     // 4×4 GPU grid — same layout as WebGLScene
@@ -30,51 +31,34 @@ export function WebGPUScene() {
     const CPU_POS = useMemo(() => new THREE.Vector3(0, 1.0, 0), []);
 
     // ── Horizontal GPU↔GPU inter-connections (Storage Buffer loops) ────────
-    // Each cube connects to its right and bottom neighbour → mesh-like circuit
     const gpuLinks = useMemo(() => {
-        const links: { line: THREE.Line<any, any>; from: number; to: number }[] = [];
+        const links: { from: number; to: number }[] = [];
         const cols = 4, rows = 4;
-        const mat = new THREE.LineBasicMaterial({ color: HX, transparent: true, opacity: 0.25 });
         for (let i = 0; i < cols; i++) {
             for (let j = 0; j < rows; j++) {
                 const idx = i * rows + j;
                 // right neighbour
                 if (i < cols - 1) {
                     const nIdx = (i + 1) * rows + j;
-                    const geo = new THREE.BufferGeometry().setFromPoints([
-                        gpuPositions[idx].clone(),
-                        gpuPositions[nIdx].clone(),
-                    ]);
-                    links.push({ line: new THREE.Line(geo, mat), from: idx, to: nIdx });
+                    links.push({ from: idx, to: nIdx });
                 }
                 // bottom neighbour
                 if (j < rows - 1) {
                     const nIdx = i * rows + (j + 1);
-                    const geo = new THREE.BufferGeometry().setFromPoints([
-                        gpuPositions[idx].clone(),
-                        gpuPositions[nIdx].clone(),
-                    ]);
-                    links.push({ line: new THREE.Line(geo, mat), from: idx, to: nIdx });
+                    links.push({ from: idx, to: nIdx });
                 }
             }
         }
         return links;
-    }, [gpuPositions]);
+    }, []);
 
     // ── Fast packets flowing GPU↔GPU ───────────────────────────────────────
-    // 12 packets racing along the horizontal links, much faster than CPU packets
-    const gpuPackets = useMemo(() => {
+    const [gpuPackets] = useState(() => {
         return gpuLinks.map(() => ({
-            active: false,
-            progress: 0,
-            speed: 0.55 + Math.random() * 0.7,   // ~3× faster than CPU packets
-            dir: Math.random() > 0.5 ? 1 : -1,   // bidirectional
+            speed: 0.55 + Math.random() * 0.7,
+            dir: Math.random() > 0.5 ? 1 : -1,
         }));
-    }, [gpuLinks]);
-
-    // Refs for GPU packets and cubes
-    const gpuPacketRefs = useRef<(THREE.Mesh<any, any> | null)[]>([]);
-    const cubeRefs = useRef<(THREE.Mesh<any, any> | null)[]>([]);
+    });
 
     // Single thin CPU→GPU line
     const cpuLine = useMemo(() => {
@@ -86,20 +70,7 @@ export function WebGPUScene() {
         return new THREE.Line(geo, mat);
     }, [CPU_POS]);
 
-    useFrame((state, delta) => {
-        const t = state.clock.elapsedTime;
-
-        // ── CPU: calm, slow pulse ──────────────────────────────────────────
-        const pulse = 0.5 + 0.5 * Math.sin(t * 0.8);   // very slow
-        if (cpuRef.current) {
-            cpuRef.current.rotation.x += delta * 0.08;
-            cpuRef.current.rotation.y += delta * 0.12;
-            cpuRef.current.material.opacity = 0.35 + pulse * 0.25;
-        }
-        if (cpuRingRef.current) {
-            cpuRingRef.current.rotation.z += delta * 0.15;
-        }
-
+    useFrame((_state, delta) => {
         // ── Single CPU→GPU command packet (slow, rare) ─────────────────────
         cmdProgress.current = (cmdProgress.current + delta * 0.18) % 1;
         if (cmdPacket.current) {
@@ -112,50 +83,12 @@ export function WebGPUScene() {
             cmdPacket.current.material.opacity =
                 t2 < 0.08 ? t2 / 0.08 : t2 > 0.92 ? (1 - t2) / 0.08 : 0.9;
         }
-
-        // ── GPU cubes: active, bright ──────────────────────────────────────
-        cubeRefs.current.forEach((cube, i) => {
-            if (!cube) return;
-            // Gentle autonomous pulse per cube (offset by index)
-            const cubePulse = 0.5 + 0.5 * Math.sin(t * 2.2 + i * 0.42);
-            cube.material.opacity = 0.35 + cubePulse * 0.45;
-            cube.rotation.y += delta * 0.4;
-            cube.rotation.x += delta * 0.25;
-        });
-
-        // ── GPU↔GPU packets: fast, bidirectional ──────────────────────────
-        gpuPackets.forEach((pkt, i) => {
-            pkt.progress += delta * pkt.speed * pkt.dir;
-            if (pkt.progress > 1) { pkt.progress = 0; pkt.dir = Math.random() > 0.3 ? 1 : -1; }
-            if (pkt.progress < 0) { pkt.progress = 1; pkt.dir = Math.random() > 0.3 ? -1 : 1; }
-
-            const mesh = gpuPacketRefs.current[i];
-            if (!mesh) return;
-            const link = gpuLinks[i];
-            const from = gpuPositions[link.from];
-            const to = gpuPositions[link.to];
-            mesh.position.lerpVectors(
-                pkt.dir > 0 ? from : to,
-                pkt.dir > 0 ? to : from,
-                pkt.progress
-            );
-            const tp = pkt.progress;
-            mesh.material.opacity = tp < 0.1 ? tp / 0.1 : tp > 0.9 ? (1 - tp) / 0.1 : 1;
-        });
     });
 
     return (
         <group position={[30, 0, 0]}>
 
-            {/* ── CPU — calm, resting ── */}
-            <mesh ref={cpuRef} position={CPU_POS.toArray()}>
-                <icosahedronGeometry args={[0.28, 1]} />
-                <meshBasicMaterial color={HX} wireframe transparent opacity={0.5} />
-            </mesh>
-            <mesh ref={cpuRingRef} position={CPU_POS.toArray()} rotation={[Math.PI / 3, 0.3, 0]}>
-                <torusGeometry args={[0.52, 0.005, 8, 80]} />
-                <meshBasicMaterial color={HX} transparent opacity={0.2} />
-            </mesh>
+            <WebGPUCpu position={CPU_POS} hx={HX} />
 
             {/* ── Single thin CPU→GPU line ── */}
             <primitive object={cpuLine} />
@@ -166,25 +99,26 @@ export function WebGPUScene() {
                 <meshBasicMaterial color={HX} transparent opacity={0.9} />
             </mesh>
 
-            {/* ── GPU horizontal mesh lines ── */}
+            {/* ── Fast GPU↔GPU inter-links and data packets ── */}
             {gpuLinks.map((link, i) => (
-                <primitive key={i} object={link.line} />
-            ))}
-
-            {/* ── Fast GPU↔GPU data packets ── */}
-            {gpuLinks.map((_, i) => (
-                <mesh key={i} ref={el => (gpuPacketRefs.current[i] = el)}>
-                    <sphereGeometry args={[0.030, 5, 5]} />
-                    <meshBasicMaterial color={HX} transparent opacity={1} />
-                </mesh>
+                <WebGPULink
+                    key={i}
+                    from={gpuPositions[link.from]}
+                    to={gpuPositions[link.to]}
+                    hx={HX}
+                    initialSpeed={gpuPackets[i].speed}
+                    initialDir={gpuPackets[i].dir}
+                />
             ))}
 
             {/* ── GPU worker cubes — autonomous, active ── */}
             {gpuPositions.map((pos, i) => (
-                <mesh key={i} ref={el => (cubeRefs.current[i] = el)} position={pos.toArray()}>
-                    <boxGeometry args={[0.23, 0.23, 0.23]} />
-                    <meshBasicMaterial color={HX} wireframe transparent opacity={0.55} />
-                </mesh>
+                <WebGPUWorker
+                    key={i}
+                    position={pos}
+                    hx={HX}
+                    index={i}
+                />
             ))}
 
         </group>

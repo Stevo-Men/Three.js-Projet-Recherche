@@ -3,18 +3,18 @@ import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { SLIDES } from '../data';
 
+interface BoxData {
+    position: [number, number, number];
+    rotation: [number, number, number];
+    scale: [number, number, number];
+    material: THREE.Material;
+    speedX: number;
+    speedY: number;
+}
+
 export function PluginScene() {
     const hx = SLIDES[1].hx;
     const groupRef = useRef<THREE.Group>(null);
-
-    interface BoxData {
-        position: [number, number, number];
-        rotation: [number, number, number];
-        scale: [number, number, number];
-        material: THREE.Material;
-        speedX: number;
-        speedY: number;
-    }
 
     const boxes = React.useMemo(() => {
         const items: BoxData[] = [];
