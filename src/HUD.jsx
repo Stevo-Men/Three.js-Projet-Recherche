@@ -8,11 +8,13 @@ const BODY_SIZES = {
     sm: 'clamp(0.76rem, 1.0vw, 0.90rem)',
     md: 'clamp(0.85rem, 1.2vw, 1.05rem)',
     lg: 'clamp(1.0rem, 1.4vw, 1.2rem)',
+    xl: 'clamp(1.5rem, 2.8vw, 2.5rem)',
 };
 
 // ─── Structured body renderer ──────────────────────────────────────────────────
 // Format conventions for body strings in data.js:
 //   ## Heading text   → accent-colored label (no ## in output)
+//   # Heading text   → accent-colored label (no ## in output)
 //   • item / - item   → bullet point
 //   plain text        → paragraph
 //   \n\n              → block separator
@@ -49,6 +51,25 @@ function BodyContent({ body, bodyStyle = {}, isVisible, accentColor }) {
                             transition: `opacity 0.45s ease ${0.18 + idx * 0.06}s`,
                         }}>
                             {lines[0].slice(3)}
+                        </div>
+                    );
+                }
+
+                // Section heading: lone # line
+                if (lines.length === 1 && lines[0].startsWith('# ')) {
+                    const idx = animIdx++;
+                    return (
+                        <div key={bi} style={{
+                            marginTop: bi > 0 ? '12px' : '0',
+                            marginBottom: '2px',
+                            fontSize: '1.2em',
+                            fontWeight: 800,
+                            letterSpacing: '0.1em',
+                            color: accentColor || 'rgba(255,255,255,0.6)',
+                            opacity: isVisible ? 1 : 0,
+                            transition: `opacity 0.45s ease ${0.18 + idx * 0.06}s`
+                        }}>
+                            {lines[0].slice(2)}
                         </div>
                     );
                 }
@@ -198,15 +219,27 @@ export function HUD({ activeSlide, activeEffects, toggleEffect }) {
 
     const { slide, copy, pos } = content;
     const isRight = pos.side === 'right';
+    const isCenter = pos.side === 'center';
     const color = slide.color;
     const hexColor = typeof color === 'number' ? `#${color.toString(16).padStart(6, '0')}` : color;
     const isThreeJS = slide.sceneId === 4;
 
-    const panelClasses = `sc-panel ${isRight ? 'sc-right' : 'sc-left'} ${isVisible ? 'sc-visible' : 'sc-hidden'}`;
+    const panelClasses = `sc-panel ${isCenter ? 'sc-center' : isRight ? 'sc-right' : 'sc-left'} ${isVisible ? 'sc-visible' : 'sc-hidden'}`;
+
+    let sideStyles = {};
+    if (isCenter) {
+        sideStyles = { left: '50%', transform: 'translateX(-50%)', width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' };
+    } else if (isRight) {
+        sideStyles = { right: 'clamp(80px, 7vw, 110px)' };
+    } else {
+        sideStyles = { left: 'clamp(32px, 5vw, 64px)' };
+    }
 
     const panelStyles = {
+        position: 'absolute',
         top: pos.top,
-        ...(isRight ? { right: 'clamp(80px, 7vw, 110px)' } : { left: 'clamp(32px, 5vw, 64px)' })
+        ...sideStyles,
+        maxWidth: pos.width || (isCenter ? '900px' : '560px')
     };
 
     // paragraphs no longer needed — BodyContent handles parsing
@@ -214,17 +247,21 @@ export function HUD({ activeSlide, activeEffects, toggleEffect }) {
     return (
         <div className="sc-wrap" style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', pointerEvents: 'none', zIndex: 50 }}>
             <div className={panelClasses} style={panelStyles}>
-                <div className="sc-inner" style={{ borderColor: `${hexColor}55`, transition: 'border-color 0.45s ease', borderLeftStyle: 'solid', borderLeftWidth: '1px', paddingLeft: '20px' }}>
+                <div className="sc-inner" style={{
+                    borderColor: `${hexColor}55`,
+                    transition: 'border-color 0.45s ease',
+                    ...(isCenter ? { borderLeft: 'none', paddingLeft: 0, textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' } : { borderLeftStyle: 'solid', borderLeftWidth: '1px', paddingLeft: '20px' })
+                }}>
 
                     <div className="sc-eyebrow" style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 'clamp(0.55rem, 0.9vw, 0.68rem)', fontWeight: 400, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.38)', marginBottom: '18px', marginTop: '18px', lineHeight: 1 }}>
                         {copy.eyebrow || slide.subject.toUpperCase()}
                     </div>
 
-                    <div className="sc-title-row" style={{ display: 'flex', alignItems: 'baseline', gap: '14px', marginBottom: '22px' }}>
+                    <div className="sc-title-row" style={{ display: 'flex', alignItems: 'baseline', justifyContent: isCenter ? 'center' : 'flex-start', gap: '14px', marginBottom: '22px' }}>
                         <span className="sc-num" style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 'clamp(0.72rem, 1.1vw, 0.84rem)', fontWeight: 300, letterSpacing: '0.08em', color: 'rgba(255,255,255,0.28)', flexShrink: 0, paddingTop: '0.15em' }}>
                             0{slide.subjectNum}
                         </span>
-                        <h2 className="sc-title" style={{ fontFamily: 'Syne, sans-serif', fontSize: 'clamp(2.1rem, 4.2vw, 3.4rem)', fontWeight: 800, letterSpacing: '-0.03em', lineHeight: 1.0, margin: 0, transition: 'color 0.45s ease', color: hexColor }}>
+                        <h2 className="sc-title" style={{ fontFamily: 'Syne, sans-serif', fontSize: 'clamp(1.8rem, 4.2vw, 3.4rem)', fontWeight: 600, letterSpacing: '-0.03em', lineHeight: 1.0, margin: 0, transition: 'color 0.45s ease', color: hexColor }}>
                             {slide.title}
                         </h2>
                     </div>

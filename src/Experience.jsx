@@ -168,27 +168,32 @@ function PostEffects({ fx, isThreeJS }) {
 // ─── Experience ───────────────────────────────────────────────────────────────
 export function Experience({ activeSlide, activeEffects }) {
     const isThreeJS = SLIDES[activeSlide]?.sceneId === 4;
+    const isAvenir = SLIDES[activeSlide]?.sceneId === 5;
 
     return (
-        <Canvas
-            camera={{ position: [0, 0, 8], fov: 45 }}
-            style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', zIndex: 10, pointerEvents: 'none' }}
-        >
-            <ambientLight intensity={0.5} />
+        <>
+            <Canvas
+                camera={{ position: [0, 0, 8], fov: 45 }}
+                style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', zIndex: 10, pointerEvents: 'none' }}
+            >
+                <ambientLight intensity={0.5} />
 
-            <CameraManager activeSlide={activeSlide} />
-            <BackgroundDust />
+                <CameraManager activeSlide={activeSlide} />
+                <BackgroundDust />
 
-            <Selection>
-                <SommaireScene />
-                <PluginScene />
-                <WebGLScene activeSlide={activeSlide} />
-                <WebGPUScene />
-                <ThreeJSScene activeSlide={activeSlide} activeEffects={activeEffects} />
-                <AvenirScene />
+                <Selection>
+                    <SommaireScene />
+                    <PluginScene />
+                    <WebGLScene activeSlide={activeSlide} />
+                    <WebGPUScene />
+                    <ThreeJSScene activeSlide={activeSlide} activeEffects={activeEffects} />
 
-                <PostEffects fx={activeEffects} isThreeJS={isThreeJS} />
-            </Selection>
-        </Canvas>
+                    <PostEffects fx={activeEffects} isThreeJS={isThreeJS} />
+                </Selection>
+            </Canvas>
+
+            {/* AvenirScene renders its own vanilla Three.js canvas — must live OUTSIDE the R3F Canvas */}
+            <AvenirScene activeSlide={activeSlide} isVisible={isAvenir} />
+        </>
     );
 }

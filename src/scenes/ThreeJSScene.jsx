@@ -309,7 +309,7 @@ function DemoCube({ visible, showMaterials, showLights, position = [0, 0.8, 0.94
                 </group>
             )}
             <mesh ref={meshRef}>
-                <torusGeometry args={[1.0, 0.04, 16, 100]} />
+
                 {showMaterials ? (
                     <meshStandardMaterial color={0xffaa00} roughness={0.3} metalness={0.1} />
                 ) : (
