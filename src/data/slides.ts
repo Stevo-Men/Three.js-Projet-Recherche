@@ -3,7 +3,7 @@ import { P, HX } from './theme';
 export const SLIDES = [
     {
         sceneId: 0, subjectNum: 0, tot: 1, idx: 1,
-        subject: "Plan de la présentation", title: "Sommaire",
+        subject: "Plan de la présentation", title: "3D sur le web",
         subtitle: "",
         color: P.sommaire, hx: HX.sommaire,
         bodyPos: [-4, -1.5, 1]

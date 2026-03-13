@@ -142,7 +142,7 @@ export const SLIDE_COPY = [
                 ['WebGPU', 'JS → WebGPU API → Vulkan / Metal / DX12 → GPU'],
             ],
         },
-        cta: 'SPEC WEBGPU →',
+        cta: null,
     },
     // 6 – Three.js
     {
@@ -281,7 +281,7 @@ scene.add(point);`,
 • Architecture : visualisation de bâtiments en temps réel sans logiciel installé.
 • Simulation scientifique : dynamique des fluides, cartographie géospatiale.
 • Jeux & expériences : jeux web, expériences immersives marketing, musées numériques.
-• IA & Machine Learning : TensorFlow.js exploite WebGPU pour exécuter des modèles d'IA localement.`,
+• IA & Machine Learning : Utilisation de WebGPU pour exécuter des modèles d'IA localement.`,
         cta: null,
     },
     // 13 – Les limites actuelles
