@@ -1,392 +1,314 @@
-import React, { useRef, useMemo, useEffect } from 'react';
+import { useRef, useMemo, useEffect } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   TAB CONFIG — exported so Experience.tsx can render the HTML tab bar
+   SLIDE 12 — MORPHING WIREFRAME SHAPE
+   Forme en fils de fer qui change doucement :
+   fauteuil → globe terrestre → bâtiment → réseau de neurones
 ═══════════════════════════════════════════════════════════════════════════ */
-export const TABS = [
-    { key: 'ecommerce', label: ' E-commerce', accent: '#ff6b6b' },
-    { key: 'archi', label: ' Architecture', accent: '#4ecdc4' },
-    { key: 'science', label: ' Science', accent: '#45b7d1' },
-    { key: 'gaming', label: ' Gaming', accent: '#96ceb4' },
-    { key: 'ia', label: 'IA / ML', accent: '#dda0dd' },
-];
 
-/* ═══════════════════════════════════════════════════════════════════════════
-   FLOAT — Y-axis sine-wave bob, shared by all mini-scenes
-═══════════════════════════════════════════════════════════════════════════ */
-function Float({ children, speed = 1.0, amplitude = 0.08 }: {
-    children: React.ReactNode; speed?: number; amplitude?: number;
-}) {
-    const ref = useRef<THREE.Group>(null);
-    useFrame(({ clock }) => {
-        if (ref.current) ref.current.position.y = Math.sin(clock.elapsedTime * speed) * amplitude;
-    });
-    return <group ref={ref}>{children}</group>;
+const MORPH_COUNT = 900;
+const HOLD_SEC    = 3.2;   // secondes sur chaque forme
+const MORPH_SEC   = 2.4;   // secondes de transition
+const WF_COLOR    = '#2eb8f5';
+const WF_OPACITY  = 0.55;
+const PT_OPACITY  = 0.22;  // particules en fond subtil
+
+/* ── Helpers de génération de positions ───────────────────────────────── */
+function sampleBoxSurface(
+    w: number, h: number, d: number,
+    cx: number, cy: number, cz: number,
+): [number, number, number] {
+    const areas = [w * h, w * h, w * d, w * d, h * d, h * d];
+    const total = areas.reduce((a, b) => a + b, 0);
+    let r = Math.random() * total, face = 5, cum = 0;
+    for (let i = 0; i < 6; i++) { cum += areas[i]; if (r < cum) { face = i; break; } }
+    const u = Math.random() - 0.5, v = Math.random() - 0.5;
+    let x = 0, y = 0, z = 0;
+    switch (face) {
+        case 0: x = u * w; y = v * h; z =  d / 2; break;
+        case 1: x = u * w; y = v * h; z = -d / 2; break;
+        case 2: x = u * w; y =  h / 2; z = v * d; break;
+        case 3: x = u * w; y = -h / 2; z = v * d; break;
+        case 4: x =  w / 2; y = u * h; z = v * d; break;
+        case 5: x = -w / 2; y = u * h; z = v * d; break;
+    }
+    return [x + cx, y + cy, z + cz];
 }
 
-/* ═══════════════════════════════════════════════════════════════════════════
-   PLATFORM — glass disk + glow ring under every mini-scene
-═══════════════════════════════════════════════════════════════════════════ */
-function Platform({ accent }: { accent: string }) {
-    const dimColor = useMemo(() => new THREE.Color(accent).multiplyScalar(0.16), [accent]);
-    return (
-        <group position={[0, -1.65, 0]}>
-            <mesh>
-                <cylinderGeometry args={[1.8, 1.8, 0.06, 64]} />
-                <meshStandardMaterial color={dimColor} transparent opacity={0.40} roughness={0.05} metalness={0.10} />
-            </mesh>
-            <mesh rotation-x={Math.PI / 2}>
-                <torusGeometry args={[1.82, 0.022, 16, 80]} />
-                <meshBasicMaterial color={accent} transparent opacity={0.65} />
-            </mesh>
-        </group>
-    );
+type BoxDef = { w: number; h: number; d: number; cx: number; cy: number; cz: number; area: number };
+
+function buildMultiBox(parts: BoxDef[], count: number): Float32Array {
+    const total = parts.reduce((s, p) => s + p.area, 0);
+    const arr = new Float32Array(count * 3);
+    for (let i = 0; i < count; i++) {
+        let r = Math.random() * total;
+        let p = parts[parts.length - 1];
+        for (const cp of parts) { if (r < cp.area) { p = cp; break; } r -= cp.area; }
+        const [x, y, z] = sampleBoxSurface(p.w, p.h, p.d, p.cx, p.cy, p.cz);
+        arr[i * 3] = x; arr[i * 3 + 1] = y; arr[i * 3 + 2] = z;
+    }
+    return arr;
 }
 
-/* ═══════════════════════════════════════════════════════════════════════════
-   TAB 0 — E-COMMERCE SNEAKER  (drag-to-rotate via pointer capture)
-═══════════════════════════════════════════════════════════════════════════ */
-function EcommerceScene({ accent }: { accent: string }) {
-    const groupRef = useRef<THREE.Group>(null);
-    const drag = useRef({ active: false, prev: { x: 0, y: 0 }, vel: { x: 0, y: 0 } });
-    const ac = useMemo(() => new THREE.Color(accent), [accent]);
+function buildMorphShapes(): Float32Array[] {
+    const N = MORPH_COUNT;
 
-    useFrame(() => {
-        const g = groupRef.current;
-        const d = drag.current;
-        if (!g || d.active) return;
-        g.rotation.y += d.vel.y;
-        g.rotation.x += d.vel.x;
-        d.vel.x *= 0.90;
-        d.vel.y *= 0.90;
-    });
+    /* Forme 0 : Fauteuil */
+    const chair = buildMultiBox([
+        { w: 1.3,  h: 0.13, d: 1.1,  cx:  0,     cy:  0,     cz:  0,     area: 1.3  * 1.1  },
+        { w: 1.3,  h: 1.15, d: 0.13, cx:  0,     cy:  0.60,  cz: -0.49,  area: 1.3  * 1.15 },
+        { w: 0.14, h: 0.65, d: 1.1,  cx: -0.58,  cy:  0.35,  cz:  0,     area: 0.65 * 1.1  },
+        { w: 0.14, h: 0.65, d: 1.1,  cx:  0.58,  cy:  0.35,  cz:  0,     area: 0.65 * 1.1  },
+        { w: 0.13, h: 0.90, d: 0.13, cx: -0.55,  cy: -0.51,  cz: -0.44,  area: 0.13 * 0.9  },
+        { w: 0.13, h: 0.90, d: 0.13, cx:  0.55,  cy: -0.51,  cz: -0.44,  area: 0.13 * 0.9  },
+        { w: 0.13, h: 0.90, d: 0.13, cx: -0.55,  cy: -0.51,  cz:  0.44,  area: 0.13 * 0.9  },
+        { w: 0.13, h: 0.90, d: 0.13, cx:  0.55,  cy: -0.51,  cz:  0.44,  area: 0.13 * 0.9  },
+    ], N);
 
-    const handlers = {
-        onPointerDown: (e: any) => {
-            e.stopPropagation();
-            e.target.setPointerCapture(e.pointerId);
-            drag.current = { active: true, prev: { x: e.clientX, y: e.clientY }, vel: { x: 0, y: 0 } };
-        },
-        onPointerMove: (e: any) => {
-            if (!drag.current.active || !groupRef.current) return;
-            const dx = (e.clientX - drag.current.prev.x) * 0.010;
-            const dy = (e.clientY - drag.current.prev.y) * 0.010;
-            groupRef.current.rotation.y += dx;
-            groupRef.current.rotation.x = Math.max(-1.1, Math.min(1.1, groupRef.current.rotation.x + dy));
-            drag.current.vel = { x: dy, y: dx };
-            drag.current.prev = { x: e.clientX, y: e.clientY };
-        },
-        onPointerUp: (e: any) => {
-            drag.current.active = false;
-            e.target.releasePointerCapture(e.pointerId);
-        },
-    };
+    /* Forme 1 : Globe terrestre */
+    const globe = new Float32Array(N * 3);
+    for (let i = 0; i < N; i++) {
+        const phi = Math.acos(2 * Math.random() - 1);
+        const theta = 2 * Math.PI * Math.random();
+        const r = 1.28 + (Math.random() - 0.5) * 0.08;
+        globe[i * 3]     = r * Math.sin(phi) * Math.cos(theta);
+        globe[i * 3 + 1] = r * Math.cos(phi);
+        globe[i * 3 + 2] = r * Math.sin(phi) * Math.sin(theta);
+    }
 
-    return (
-        <Float speed={1.1} amplitude={0.08}>
-            <group ref={groupRef} {...handlers}>
-                {/* Invisible hit volume so drag works between parts */}
-                <mesh visible={false}>
-                    <boxGeometry args={[2, 1.4, 1]} />
-                    <meshBasicMaterial />
-                </mesh>
-                <mesh position={[0, -0.62, 0]}>
-                    <boxGeometry args={[1.52, 0.10, 0.55]} />
-                    <meshStandardMaterial color="#1e1e1e" roughness={0.95} />
-                </mesh>
-                <mesh position={[0, -0.50, 0]}>
-                    <boxGeometry args={[1.40, 0.14, 0.52]} />
-                    <meshStandardMaterial color="#d4d4d4" roughness={0.70} />
-                </mesh>
-                <mesh position={[0.04, -0.22, 0]}>
-                    <boxGeometry args={[1.08, 0.30, 0.46]} />
-                    <meshStandardMaterial color={ac} roughness={0.25} metalness={0.15} />
-                </mesh>
-                <mesh position={[0.60, -0.31, 0]}>
-                    <boxGeometry args={[0.36, 0.19, 0.44]} />
-                    <meshStandardMaterial color={ac} roughness={0.25} metalness={0.15} />
-                </mesh>
-                <mesh position={[-0.56, -0.26, 0]}>
-                    <boxGeometry args={[0.28, 0.26, 0.44]} />
-                    <meshStandardMaterial color="#111111" roughness={0.90} />
-                </mesh>
-                <mesh position={[0.10, 0.05, 0.24]}>
-                    <boxGeometry args={[0.22, 0.50, 0.03]} />
-                    <meshStandardMaterial color="#d4d4d4" roughness={0.70} />
-                </mesh>
-                <mesh position={[-0.10, 0.17, 0]}>
-                    <cylinderGeometry args={[0.20, 0.23, 0.09, 20]} />
-                    <meshStandardMaterial color={ac} roughness={0.25} />
-                </mesh>
-                <mesh position={[0, -0.20, 0.24]}>
-                    <cylinderGeometry args={[0.07, 0.07, 0.01, 16]} />
-                    <meshStandardMaterial color="#d4d4d4" roughness={0.70} />
-                </mesh>
-                {[0, 1, 2, 3].map(i => (
-                    <mesh key={i} position={[-0.22 + i * 0.15, -0.08, 0]} rotation={[0, 0, Math.PI / 2]}>
-                        <cylinderGeometry args={[0.012, 0.012, 0.44, 6]} />
-                        <meshStandardMaterial color="#d4d4d4" roughness={0.70} />
-                    </mesh>
-                ))}
-            </group>
-        </Float>
-    );
-}
+    /* Forme 2 : Bâtiment */
+    const building = buildMultiBox([
+        { w: 1.0,  h: 2.7, d: 0.75, cx: -0.1, cy:  0.25, cz: 0, area: 1.0  * 2.7 },
+        { w: 0.5,  h: 1.7, d: 0.50, cx:  0.7,  cy: -0.25, cz: 0, area: 0.5  * 1.7 },
+        { w: 1.15, h: 0.1, d: 0.90, cx: -0.1, cy:  1.65, cz: 0, area: 1.15 * 0.9 },
+        { w: 0.60, h: 0.1, d: 0.60, cx:  0.7,  cy:  0.60, cz: 0, area: 0.6  * 0.6 },
+    ], N);
 
-/* ═══════════════════════════════════════════════════════════════════════════
-   TAB 1 — ARCHITECTURE BUILDING (wireframe overlay, auto-rotate)
-═══════════════════════════════════════════════════════════════════════════ */
-function ArchScene({ accent }: { accent: string }) {
-    const ref = useRef<THREE.Group>(null);
-    const solidColor = useMemo(() => new THREE.Color(accent).multiplyScalar(0.22), [accent]);
-    useFrame(() => { if (ref.current) ref.current.rotation.y += 0.0025; });
-
-    return (
-        <Float speed={0.65} amplitude={0.07}>
-            <group ref={ref}>
-                {/* Main tower — solid + wireframe overlay */}
-                <mesh position={[0, 0, 0]}>
-                    <boxGeometry args={[0.88, 2.20, 0.68]} />
-                    <meshStandardMaterial color={solidColor} roughness={0.55} metalness={0.25} />
-                </mesh>
-                <mesh position={[0, 0, 0]}>
-                    <boxGeometry args={[0.88, 2.20, 0.68]} />
-                    <meshBasicMaterial color={accent} wireframe transparent opacity={0.55} />
-                </mesh>
-                {/* Side tower */}
-                <mesh position={[0.60, -0.45, 0]}>
-                    <boxGeometry args={[0.40, 1.30, 0.40]} />
-                    <meshStandardMaterial color={solidColor} roughness={0.55} metalness={0.25} />
-                </mesh>
-                <mesh position={[0.60, -0.45, 0]}>
-                    <boxGeometry args={[0.40, 1.30, 0.40]} />
-                    <meshBasicMaterial color={accent} wireframe transparent opacity={0.55} />
-                </mesh>
-                {/* Flat roof */}
-                <mesh position={[0, 1.15, 0]}>
-                    <boxGeometry args={[1.04, 0.09, 0.78]} />
-                    <meshStandardMaterial color={solidColor} roughness={0.55} metalness={0.25} />
-                </mesh>
-                <mesh position={[0, 1.15, 0]}>
-                    <boxGeometry args={[1.04, 0.09, 0.78]} />
-                    <meshBasicMaterial color={accent} wireframe transparent opacity={0.55} />
-                </mesh>
-                {/* Windows — 4 rows × 2 cols */}
-                {[0, 1, 2, 3].flatMap(row => [0, 1].map(col => (
-                    <mesh key={`w${row}${col}`} position={[-0.16 + col * 0.32, -0.75 + row * 0.52, 0.345]}>
-                        <planeGeometry args={[0.13, 0.16]} />
-                        <meshBasicMaterial color={accent} transparent opacity={0.72} />
-                    </mesh>
-                )))}
-            </group>
-        </Float>
-    );
-}
-
-/* ═══════════════════════════════════════════════════════════════════════════
-   TAB 2 — SCIENCE GLOBE (200 pulsing surface markers)
-═══════════════════════════════════════════════════════════════════════════ */
-function ScienceScene({ accent }: { accent: string }) {
-    const ref = useRef<THREE.Group>(null);
-    const markerRefs = useRef<(THREE.Mesh | null)[]>([]);
-    const solidColor = useMemo(() => new THREE.Color(accent).multiplyScalar(0.12), [accent]);
-
-    const markerData = useMemo(() => Array.from({ length: 200 }, () => ({
-        phi: Math.acos(2 * Math.random() - 1),
-        theta: 2 * Math.PI * Math.random(),
-        phase: Math.random() * Math.PI * 2,
-    })), []);
-
-    useFrame(({ clock }) => {
-        const t = clock.getElapsedTime();
-        if (ref.current) ref.current.rotation.y += 0.003;
-        markerRefs.current.forEach((m, i) => {
-            if (m) m.scale.setScalar(0.55 + 0.75 * (0.5 + 0.5 * Math.sin(t * 2.8 + markerData[i].phase)));
-        });
-    });
-
-    return (
-        <Float speed={0.8} amplitude={0.07}>
-            <group ref={ref}>
-                <mesh>
-                    <sphereGeometry args={[1.0, 48, 48]} />
-                    <meshStandardMaterial color={solidColor} roughness={0.10} metalness={0.70} transparent opacity={0.50} />
-                </mesh>
-                <mesh>
-                    <sphereGeometry args={[1.0, 48, 48]} />
-                    <meshBasicMaterial color={accent} wireframe transparent opacity={0.12} />
-                </mesh>
-                {markerData.map((d, i) => (
-                    <mesh
-                        key={i}
-                        ref={el => { markerRefs.current[i] = el; }}
-                        position={[
-                            1.02 * Math.sin(d.phi) * Math.cos(d.theta),
-                            1.02 * Math.cos(d.phi),
-                            1.02 * Math.sin(d.phi) * Math.sin(d.theta),
-                        ]}
-                    >
-                        <sphereGeometry args={[0.022, 5, 5]} />
-                        <meshBasicMaterial color={accent} />
-                    </mesh>
-                ))}
-            </group>
-        </Float>
-    );
-}
-
-/* ═══════════════════════════════════════════════════════════════════════════
-   TAB 3 — GAMING GEMS (icosahedrons bobbing + click-to-burst)
-   Particles are managed imperatively to avoid per-frame React re-renders.
-═══════════════════════════════════════════════════════════════════════════ */
-const GEM_COLORS = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#dda0dd', '#ffd93d'];
-const GEM_POSITIONS: [number, number, number][] = [
-    [-0.90, 0.00, 0.20], [0.90, 0.10, 0.20], [0.00, 0.20, -0.45],
-    [-0.50, -0.10, -0.25], [0.55, 0.15, -0.15], [0.05, 0.05, 0.55],
-];
-
-function GamingScene() {
-    const groupRef = useRef<THREE.Group>(null);
-    const partGroup = useRef<THREE.Group>(null);
-    const gemRefs = useRef<(THREE.Mesh | null)[]>([]);
-    const partGeo = useMemo(() => new THREE.SphereGeometry(0.045, 4, 4), []);
-    useEffect(() => () => { partGeo.dispose(); }, [partGeo]);
-
-    const burst = (idx: number) => {
-        const gem = gemRefs.current[idx];
-        const pg = partGroup.current;
-        if (!gem?.userData.alive || !pg) return;
-        gem.userData.alive = false;
-        gem.visible = false;
-        for (let i = 0; i < 20; i++) {
-            const mat = new THREE.MeshBasicMaterial({ color: gem.userData.color, transparent: true, opacity: 1 });
-            const mesh = new THREE.Mesh(partGeo, mat);
-            mesh.position.copy(gem.position);
-            mesh.userData = {
-                vel: new THREE.Vector3((Math.random() - 0.5) * 0.14, Math.random() * 0.10 + 0.04, (Math.random() - 0.5) * 0.14),
-                life: 1.0,
-            };
-            pg.add(mesh);
-        }
-        setTimeout(() => { if (gem) { gem.visible = true; gem.userData.alive = true; } }, 2200);
-    };
-
-    useFrame(() => {
-        const t = performance.now() / 1000;
-        if (groupRef.current) groupRef.current.position.y = Math.sin(t * 0.70) * 0.06;
-        gemRefs.current.forEach((gem, i) => {
-            if (gem?.userData.alive) {
-                gem.position.y = GEM_POSITIONS[i][1] + Math.sin(t * gem.userData.speed + gem.userData.phase) * 0.19;
-                gem.rotation.y += 0.018;
-                gem.rotation.z += 0.010;
-            }
-        });
-        if (!partGroup.current) return;
-        const dead: THREE.Mesh[] = [];
-        partGroup.current.children.forEach(child => {
-            const m = child as THREE.Mesh;
-            m.userData.life -= 0.022;
-            m.position.addScaledVector(m.userData.vel, 1);
-            m.userData.vel.y -= 0.003;
-            (m.material as THREE.MeshBasicMaterial).opacity = Math.max(0, m.userData.life);
-            m.scale.setScalar(Math.max(0.01, m.userData.life * 1.2));
-            if (m.userData.life <= 0) dead.push(m);
-        });
-        dead.forEach(m => {
-            (m.material as THREE.MeshBasicMaterial).dispose();
-            partGroup.current!.remove(m);
-        });
-    });
-
-    return (
-        <group ref={groupRef}>
-            <group ref={partGroup} />
-            {GEM_COLORS.map((color, i) => (
-                <mesh
-                    key={color}
-                    ref={el => { gemRefs.current[i] = el; }}
-                    position={GEM_POSITIONS[i]}
-                    userData={{ baseY: GEM_POSITIONS[i][1], phase: i * 1.1, speed: 0.80 + i * 0.13, alive: true, color }}
-                    onClick={e => { e.stopPropagation(); burst(i); }}
-                >
-                    <icosahedronGeometry args={[0.26, 1]} />
-                    <meshStandardMaterial color={color} roughness={0.05} metalness={0.90} emissive={color} emissiveIntensity={0.35} />
-                </mesh>
-            ))}
-        </group>
-    );
-}
-
-/* ═══════════════════════════════════════════════════════════════════════════
-   TAB 4 — IA / ML NEURAL NETWORK (3 layers, wave-opacity connections)
-═══════════════════════════════════════════════════════════════════════════ */
-function NNScene({ accent }: { accent: string }) {
-    const groupRef = useRef<THREE.Group>(null);
-    const neuronRefs = useRef<(THREE.Mesh | null)[]>([]);
-    const connMatRefs = useRef<(THREE.LineBasicMaterial | null)[]>([]);
-    const ac = useMemo(() => new THREE.Color(accent), [accent]);
-
+    /* Forme 3 : Réseau de neurones */
+    const nn = new Float32Array(N * 3);
     const LAYERS = [4, 6, 4];
     const LAYER_X = [-1.5, 0, 1.5];
+    const layerNodes = LAYERS.map((count, li) =>
+        Array.from({ length: count }, (_, ni) =>
+            new THREE.Vector3(LAYER_X[li], (ni - (count - 1) / 2) * 0.57, 0)
+        )
+    );
+    const allNodes = layerNodes.flat();
+    const conns: [THREE.Vector3, THREE.Vector3][] = [];
+    for (let li = 0; li < layerNodes.length - 1; li++)
+        layerNodes[li].forEach(a => layerNodes[li + 1].forEach(b => conns.push([a, b])));
+    const nodeN = Math.floor(N * 0.45);
+    for (let i = 0; i < nodeN; i++) {
+        const n = allNodes[i % allNodes.length];
+        nn[i * 3]     = n.x + (Math.random() - 0.5) * 0.16;
+        nn[i * 3 + 1] = n.y + (Math.random() - 0.5) * 0.16;
+        nn[i * 3 + 2] = n.z + (Math.random() - 0.5) * 0.16;
+    }
+    for (let i = nodeN; i < N; i++) {
+        const [a, b] = conns[i % conns.length];
+        const t = Math.random();
+        nn[i * 3]     = a.x + (b.x - a.x) * t;
+        nn[i * 3 + 1] = a.y + (b.y - a.y) * t;
+        nn[i * 3 + 2] = a.z + (b.z - a.z) * t;
+    }
 
-    const neurons = useMemo(() =>
-        LAYERS.map((count, li) =>
-            Array.from({ length: count }, (_, ni) => ({
-                pos: new THREE.Vector3(LAYER_X[li], (ni - (count - 1) / 2) * 0.57, 0),
-                phase: li * 2.4 + ni * 0.85,
-            }))
-        ), []);
+    return [chair, globe, building, nn];
+}
 
-    const connGeos = useMemo(() => {
-        const geos: THREE.BufferGeometry[] = [];
-        for (let li = 0; li < LAYERS.length - 1; li++)
-            neurons[li].forEach(n1 => neurons[li + 1].forEach(n2 =>
-                geos.push(new THREE.BufferGeometry().setFromPoints([n1.pos, n2.pos]))
-            ));
-        return geos;
-    }, [neurons]);
+/* ── Définitions des géométries wireframe ────────────────────────────── */
+type MeshBox = { args: [number, number, number]; pos: [number, number, number] };
 
-    useEffect(() => () => { connGeos.forEach(g => g.dispose()); }, [connGeos]);
+const CHAIR_BOXES: MeshBox[] = [
+    { args: [1.3,  0.13, 1.1 ], pos: [ 0,     0,     0    ] }, // assise
+    { args: [1.3,  1.15, 0.13], pos: [ 0,     0.60, -0.49 ] }, // dossier
+    { args: [0.14, 0.65, 1.1 ], pos: [-0.58,  0.35,  0    ] }, // accoudoir G
+    { args: [0.14, 0.65, 1.1 ], pos: [ 0.58,  0.35,  0    ] }, // accoudoir D
+    { args: [0.13, 0.9,  0.13], pos: [-0.55, -0.51, -0.44 ] }, // pied AVG
+    { args: [0.13, 0.9,  0.13], pos: [ 0.55, -0.51, -0.44 ] }, // pied AVD
+    { args: [0.13, 0.9,  0.13], pos: [-0.55, -0.51,  0.44 ] }, // pied ARG
+    { args: [0.13, 0.9,  0.13], pos: [ 0.55, -0.51,  0.44 ] }, // pied ARD
+];
 
-    // Build Line primitives once
-    const lineObjects = useMemo(() =>
-        connGeos.map((geo, i) => {
-            const mat = new THREE.LineBasicMaterial({ color: accent, transparent: true, opacity: 0.10 });
-            connMatRefs.current[i] = mat;
-            return new THREE.Line(geo, mat);
-        }), [connGeos, accent]);
+const BUILD_BOXES: MeshBox[] = [
+    { args: [1.0,  2.7,  0.75], pos: [-0.1,  0.25, 0] }, // tour principale
+    { args: [0.5,  1.7,  0.50], pos: [ 0.7, -0.25, 0] }, // tour annexe
+    { args: [1.15, 0.1,  0.90], pos: [-0.1,  1.65, 0] }, // toit principal
+    { args: [0.60, 0.1,  0.60], pos: [ 0.7,  0.60, 0] }, // toit annexe
+];
 
-    useFrame(({ clock }) => {
-        const t = clock.getElapsedTime();
-        if (groupRef.current) {
-            groupRef.current.position.y = Math.sin(t * 0.90) * 0.07;
-            groupRef.current.rotation.y = Math.sin(t * 0.28) * 0.22;
+const NN_LAYERS  = [4, 6, 4];
+const NN_LAYER_X = [-1.5, 0, 1.5];
+
+/* ── Composant MorphingScene ─────────────────────────────────────────── */
+function MorphingScene() {
+    const groupRef   = useRef<THREE.Group>(null);
+    const morphState = useRef({ idx: 0, timer: 0 });
+
+    /* -- Particules (fond de détail) ------------------------------------ */
+    const shapes    = useMemo(() => buildMorphShapes(), []);
+    const positions = useMemo(() => new Float32Array(shapes[0]), [shapes]);
+    const ptGeo = useMemo(() => {
+        const g = new THREE.BufferGeometry();
+        g.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        return g;
+    }, [positions]);
+    useEffect(() => () => { ptGeo.dispose(); }, [ptGeo]);
+
+    /* -- Refs matériaux wireframe (mis à jour chaque frame) ------------- */
+    const chairMats = useRef<(THREE.MeshBasicMaterial | null)[]>(Array(CHAIR_BOXES.length).fill(null));
+    const globeMat  = useRef<THREE.MeshBasicMaterial | null>(null);
+    const buildMats = useRef<(THREE.MeshBasicMaterial | null)[]>(Array(BUILD_BOXES.length).fill(null));
+    const nnLineMats = useRef<THREE.LineBasicMaterial[]>([]);
+    const nnNodeMats = useRef<(THREE.MeshBasicMaterial | null)[]>([]);
+
+    /* -- Géométrie du réseau de neurones -------------------------------- */
+    const { nnNodes, nnLineObjs } = useMemo(() => {
+        nnLineMats.current = []; // reset à chaque remount
+        const layerNodes = NN_LAYERS.map((count, li) =>
+            Array.from({ length: count }, (_, ni) =>
+                new THREE.Vector3(NN_LAYER_X[li], (ni - (count - 1) / 2) * 0.57, 0)
+            )
+        );
+        const nnNodes = layerNodes.flat();
+        const nnLineObjs: THREE.Line[] = [];
+        for (let li = 0; li < layerNodes.length - 1; li++) {
+            layerNodes[li].forEach(a => {
+                layerNodes[li + 1].forEach(b => {
+                    const geo = new THREE.BufferGeometry().setFromPoints([a, b]);
+                    const mat = new THREE.LineBasicMaterial({ color: WF_COLOR, transparent: true, opacity: 0 });
+                    nnLineMats.current.push(mat);
+                    nnLineObjs.push(new THREE.Line(geo, mat));
+                });
+            });
         }
-        const flat = neurons.flat();
-        neuronRefs.current.forEach((mesh, i) => {
-            if (!mesh) return;
-            const pulse = 0.5 + 0.5 * Math.sin(t * 2.6 + flat[i].phase);
-            (mesh.material as THREE.MeshStandardMaterial).emissiveIntensity = 0.30 + pulse * 0.80;
-            mesh.scale.setScalar(0.88 + pulse * 0.24);
-        });
-        connMatRefs.current.forEach((mat, idx) => {
-            if (mat) mat.opacity = 0.07 + 0.55 * (0.5 + 0.5 * Math.sin(t * 3.2 + idx * 0.42));
-        });
+        return { nnNodes, nnLineObjs };
+    }, []);
+    useEffect(() => () => {
+        nnLineObjs.forEach(l => { l.geometry.dispose(); (l.material as THREE.Material).dispose(); });
+    }, [nnLineObjs]);
+
+    /* -- Applique une opacité à tous les mats d'une forme --------------- */
+    const applyOpacity = (idx: number, op: number) => {
+        switch (idx) {
+            case 0: chairMats.current.forEach(m => { if (m) m.opacity = op; }); break;
+            case 1: if (globeMat.current) globeMat.current.opacity = op; break;
+            case 2: buildMats.current.forEach(m => { if (m) m.opacity = op; }); break;
+            case 3:
+                nnLineMats.current.forEach(m => { m.opacity = op * 0.65; });
+                nnNodeMats.current.forEach(m => { if (m) m.opacity = op; });
+                break;
+        }
+    };
+
+    /* -- Animation ------------------------------------------------------ */
+    useFrame(({ clock }, delta) => {
+        const s     = morphState.current;
+        s.timer    += delta;
+        const CYCLE = HOLD_SEC + MORPH_SEC;
+        const nextIdx = (s.idx + 1) % shapes.length;
+        let morphT = 0;
+
+        if (s.timer >= CYCLE) {
+            // Avance à la forme suivante
+            s.idx   = nextIdx;
+            s.timer -= CYCLE;
+            for (let i = 0; i < MORPH_COUNT * 3; i++) positions[i] = shapes[s.idx][i];
+            (ptGeo.attributes.position as THREE.BufferAttribute).needsUpdate = true;
+        } else if (s.timer >= HOLD_SEC) {
+            // Phase de transition — morph des particules
+            const raw = (s.timer - HOLD_SEC) / MORPH_SEC;
+            morphT = raw < 0.5 ? 2 * raw * raw : 1 - Math.pow(-2 * raw + 2, 2) / 2;
+            const from = shapes[s.idx], to = shapes[nextIdx];
+            for (let i = 0; i < MORPH_COUNT * 3; i++)
+                positions[i] = from[i] + (to[i] - from[i]) * morphT;
+            (ptGeo.attributes.position as THREE.BufferAttribute).needsUpdate = true;
+        }
+
+        // Crossfade des wireframes chaque frame
+        for (let i = 0; i < 4; i++) {
+            let op = 0;
+            if      (i === s.idx)            op = (1 - morphT) * WF_OPACITY;
+            else if (i === (s.idx + 1) % 4)  op = morphT * WF_OPACITY;
+            applyOpacity(i, op);
+        }
+
+        // Rotation douce + respiration verticale
+        if (groupRef.current) {
+            groupRef.current.rotation.y = clock.getElapsedTime() * 0.14;
+            groupRef.current.position.y = Math.sin(clock.getElapsedTime() * 0.45) * 0.12;
+        }
     });
 
     return (
-        <group ref={groupRef}>
-            {neurons.flat().map((n, i) => (
-                <mesh key={i} ref={el => { neuronRefs.current[i] = el; }} position={n.pos}>
-                    <sphereGeometry args={[0.115, 16, 16]} />
-                    <meshStandardMaterial color={ac} roughness={0.20} metalness={0.30} emissive={ac} emissiveIntensity={0.40} transparent opacity={0.90} />
+        <group ref={groupRef} position={[1.0, 0.2, 0]}>
+
+            {/* Particules — fond de détail subtil */}
+            <points>
+                <primitive object={ptGeo} attach="geometry" />
+                <pointsMaterial size={0.020} color={WF_COLOR} transparent opacity={PT_OPACITY} sizeAttenuation />
+            </points>
+
+            {/* Forme 0 : Fauteuil (visible au départ) */}
+            {CHAIR_BOXES.map(({ args, pos }, i) => (
+                <mesh key={`chair-${i}`} position={pos}>
+                    <boxGeometry args={args} />
+                    <meshBasicMaterial
+                        ref={(m: THREE.MeshBasicMaterial | null) => { chairMats.current[i] = m; }}
+                        color={WF_COLOR}
+                        wireframe
+                        transparent
+                        opacity={WF_OPACITY}
+                    />
                 </mesh>
             ))}
-            {lineObjects.map((line, i) => (
-                <primitive key={i} object={line} />
+
+            {/* Forme 1 : Globe (initialement invisible) */}
+            <mesh>
+                <sphereGeometry args={[1.28, 18, 12]} />
+                <meshBasicMaterial
+                    ref={(m: THREE.MeshBasicMaterial | null) => { globeMat.current = m; }}
+                    color={WF_COLOR}
+                    wireframe
+                    transparent
+                    opacity={0}
+                />
+            </mesh>
+
+            {/* Forme 2 : Bâtiment (initialement invisible) */}
+            {BUILD_BOXES.map(({ args, pos }, i) => (
+                <mesh key={`build-${i}`} position={pos}>
+                    <boxGeometry args={args} />
+                    <meshBasicMaterial
+                        ref={(m: THREE.MeshBasicMaterial | null) => { buildMats.current[i] = m; }}
+                        color={WF_COLOR}
+                        wireframe
+                        transparent
+                        opacity={0}
+                    />
+                </mesh>
             ))}
+
+            {/* Forme 3 : Réseau de neurones — connexions (initialement invisible) */}
+            {nnLineObjs.map((line, i) => (
+                <primitive key={`nn-line-${i}`} object={line} />
+            ))}
+
+            {/* Réseau de neurones — nœuds sphériques */}
+            {nnNodes.map((n, i) => (
+                <mesh key={`nn-node-${i}`} position={n}>
+                    <sphereGeometry args={[0.115, 8, 8]} />
+                    <meshBasicMaterial
+                        ref={(m: THREE.MeshBasicMaterial | null) => { nnNodeMats.current[i] = m; }}
+                        color={WF_COLOR}
+                        wireframe
+                        transparent
+                        opacity={0}
+                    />
+                </mesh>
+            ))}
+
         </group>
     );
 }
@@ -514,13 +436,11 @@ function FutureScene() {
 
 /* ═══════════════════════════════════════════════════════════════════════════
    MAIN COMPONENT — lives inside the shared R3F Canvas at world x = 100
-   Camera pans here via SCENE_OFFSETS[5] = 100, same as every other scene.
 ═══════════════════════════════════════════════════════════════════════════ */
-export function AvenirScene({ activeSlide, activeTab }: { activeSlide: number; activeTab: number }) {
+export function AvenirScene({ activeSlide }: { activeSlide: number }) {
     const isSlide12 = activeSlide === 12;
     const isSlide13 = activeSlide === 13;
     const isSlide14 = activeSlide === 14;
-    const accent = isSlide12 ? TABS[activeTab].accent : '#2eb8f5';
 
     return (
         <group position={[100, 0, 0]}>
@@ -529,15 +449,8 @@ export function AvenirScene({ activeSlide, activeTab }: { activeSlide: number; a
             <directionalLight position={[3, 4, 3]} intensity={1.40} color="#fff4cc" />
             <directionalLight position={[-3, 1, -2]} intensity={0.70} color="#aadeff" />
 
-            {/* Platform accent tracks the active tab */}
-            <Platform accent={accent} />
-
-            {/* Slide 12 — tab-based mini-scenes (unmount/remount on switch) */}
-            {isSlide12 && activeTab === 0 && <EcommerceScene accent={TABS[0].accent} />}
-            {isSlide12 && activeTab === 1 && <ArchScene accent={TABS[1].accent} />}
-            {isSlide12 && activeTab === 2 && <ScienceScene accent={TABS[2].accent} />}
-            {isSlide12 && activeTab === 3 && <GamingScene />}
-            {isSlide12 && activeTab === 4 && <NNScene accent={TABS[4].accent} />}
+            {/* Slide 12 — forme wireframe qui morphe */}
+            {isSlide12 && <MorphingScene />}
 
             {/* Slide 13 — Les limites */}
             {isSlide13 && <LimitsScene />}

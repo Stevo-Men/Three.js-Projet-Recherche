@@ -308,9 +308,7 @@ scene.add(point);`,
 
 • Mémoire GPU limitée : le navigateur impose un plafond strict sur les scènes très lourdes.
 • Support mobile fragmenté : WebGPU n'est pas encore disponible sur tous les navigateurs mobiles.
-• Debugging difficile : les outils d'inspection du pipeline GPU sont encore immatures.
-• Chargement réseau : les assets 3D restent lourds sur connexion lente (glTF, Draco, KTX2).
-• Courbe d'apprentissage : maîtriser shaders, matrices et pipeline GPU demande une expertise rare.`,
+• Chargement réseau : les assets 3D restent lourds sur connexion lente (glTF, Draco, KTX2).`,
         cta: null,
     },
     // 14 – Technologies émergentes
