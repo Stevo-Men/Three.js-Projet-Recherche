@@ -3,312 +3,174 @@ import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   SLIDE 12 — MORPHING WIREFRAME SHAPE
-   Forme en fils de fer qui change doucement :
-   fauteuil → globe terrestre → bâtiment → réseau de neurones
+   SLIDE 12 — WIREFRAME MORPHING
+   Un seul LineSegments dont les positions interpolent entre 3 formes :
+   globe terrestre → bâtiment → réseau de neurones
 ═══════════════════════════════════════════════════════════════════════════ */
 
-const MORPH_COUNT = 900;
-const HOLD_SEC    = 3.2;   // secondes sur chaque forme
-const MORPH_SEC   = 2.4;   // secondes de transition
-const WF_COLOR    = '#2eb8f5';
-const WF_OPACITY  = 0.55;
-const PT_OPACITY  = 0.22;  // particules en fond subtil
+const N_SEGS  = 300;    // nombre de segments (identique pour les 3 formes)
+const HOLD_SEC  = 3.2;  // secondes immobile sur chaque forme
+const MORPH_SEC = 2.4;  // secondes de transition
+const WF_COLOR  = '#2eb8f5';
 
-/* ── Helpers de génération de positions ───────────────────────────────── */
-function sampleBoxSurface(
-    w: number, h: number, d: number,
-    cx: number, cy: number, cz: number,
-): [number, number, number] {
-    const areas = [w * h, w * h, w * d, w * d, h * d, h * d];
-    const total = areas.reduce((a, b) => a + b, 0);
-    let r = Math.random() * total, face = 5, cum = 0;
-    for (let i = 0; i < 6; i++) { cum += areas[i]; if (r < cum) { face = i; break; } }
-    const u = Math.random() - 0.5, v = Math.random() - 0.5;
-    let x = 0, y = 0, z = 0;
-    switch (face) {
-        case 0: x = u * w; y = v * h; z =  d / 2; break;
-        case 1: x = u * w; y = v * h; z = -d / 2; break;
-        case 2: x = u * w; y =  h / 2; z = v * d; break;
-        case 3: x = u * w; y = -h / 2; z = v * d; break;
-        case 4: x =  w / 2; y = u * h; z = v * d; break;
-        case 5: x = -w / 2; y = u * h; z = v * d; break;
+type Edge = [THREE.Vector3, THREE.Vector3];
+
+/* ── Globe : 6 anneaux lat × 30 segs + 12 méridiens × 10 segs = 300 ── */
+function buildGlobeEdges(r: number): Edge[] {
+    const LAT_RINGS = 6, LAT_SEGS = 30;
+    const LON_MERS  = 12, LON_SEGS = 10;
+    const edges: Edge[] = [];
+
+    for (let ri = 1; ri <= LAT_RINGS; ri++) {
+        const phi = (ri / (LAT_RINGS + 1)) * Math.PI;
+        for (let si = 0; si < LAT_SEGS; si++) {
+            const t0 = (si       / LAT_SEGS) * Math.PI * 2;
+            const t1 = ((si + 1) / LAT_SEGS) * Math.PI * 2;
+            edges.push([
+                new THREE.Vector3(r * Math.sin(phi) * Math.cos(t0), r * Math.cos(phi), r * Math.sin(phi) * Math.sin(t0)),
+                new THREE.Vector3(r * Math.sin(phi) * Math.cos(t1), r * Math.cos(phi), r * Math.sin(phi) * Math.sin(t1)),
+            ]);
+        }
     }
-    return [x + cx, y + cy, z + cz];
+    for (let li = 0; li < LON_MERS; li++) {
+        const theta = (li / LON_MERS) * Math.PI * 2;
+        for (let si = 0; si < LON_SEGS; si++) {
+            const p0 = (si       / LON_SEGS) * Math.PI;
+            const p1 = ((si + 1) / LON_SEGS) * Math.PI;
+            edges.push([
+                new THREE.Vector3(r * Math.sin(p0) * Math.cos(theta), r * Math.cos(p0), r * Math.sin(p0) * Math.sin(theta)),
+                new THREE.Vector3(r * Math.sin(p1) * Math.cos(theta), r * Math.cos(p1), r * Math.sin(p1) * Math.sin(theta)),
+            ]);
+        }
+    }
+    return edges; // exactement 300
 }
 
-type BoxDef = { w: number; h: number; d: number; cx: number; cy: number; cz: number; area: number };
-
-function buildMultiBox(parts: BoxDef[], count: number): Float32Array {
-    const total = parts.reduce((s, p) => s + p.area, 0);
-    const arr = new Float32Array(count * 3);
-    for (let i = 0; i < count; i++) {
-        let r = Math.random() * total;
-        let p = parts[parts.length - 1];
-        for (const cp of parts) { if (r < cp.area) { p = cp; break; } r -= cp.area; }
-        const [x, y, z] = sampleBoxSurface(p.w, p.h, p.d, p.cx, p.cy, p.cz);
-        arr[i * 3] = x; arr[i * 3 + 1] = y; arr[i * 3 + 2] = z;
-    }
-    return arr;
+/* ── Bâtiment : arêtes extraites via EdgesGeometry ──────────────────── */
+function buildBuildingEdges(): Edge[] {
+    const boxes = [
+        { w: 1.0,  h: 2.7,  d: 0.75, cx: -0.1, cy:  0.25, cz: 0 },
+        { w: 0.5,  h: 1.7,  d: 0.50, cx:  0.7,  cy: -0.25, cz: 0 },
+        { w: 1.15, h: 0.1,  d: 0.90, cx: -0.1,  cy:  1.65, cz: 0 },
+        { w: 0.60, h: 0.1,  d: 0.60, cx:  0.7,  cy:  0.60, cz: 0 },
+    ];
+    const edges: Edge[] = [];
+    boxes.forEach(({ w, h, d, cx, cy, cz }) => {
+        const geo  = new THREE.BoxGeometry(w, h, d);
+        const eGeo = new THREE.EdgesGeometry(geo);
+        const pos  = eGeo.attributes.position as THREE.BufferAttribute;
+        for (let i = 0; i < pos.count; i += 2) {
+            edges.push([
+                new THREE.Vector3(pos.getX(i)     + cx, pos.getY(i)     + cy, pos.getZ(i)     + cz),
+                new THREE.Vector3(pos.getX(i + 1) + cx, pos.getY(i + 1) + cy, pos.getZ(i + 1) + cz),
+            ]);
+        }
+        geo.dispose(); eGeo.dispose();
+    });
+    return edges; // ~48 arêtes
 }
 
-function buildMorphShapes(): Float32Array[] {
-    const N = MORPH_COUNT;
+/* ── Réseau de neurones : connexions + cercles de nœuds ─────────────── */
+function buildNNEdges(): Edge[] {
+    const LAYERS    = [4, 6, 4];
+    const LAYER_X   = [-1.5, 0, 1.5];
+    const NODE_R    = 0.13;
+    const NODE_SEGS = 10;
+    const edges: Edge[] = [];
 
-    /* Forme 0 : Fauteuil */
-    const chair = buildMultiBox([
-        { w: 1.3,  h: 0.13, d: 1.1,  cx:  0,     cy:  0,     cz:  0,     area: 1.3  * 1.1  },
-        { w: 1.3,  h: 1.15, d: 0.13, cx:  0,     cy:  0.60,  cz: -0.49,  area: 1.3  * 1.15 },
-        { w: 0.14, h: 0.65, d: 1.1,  cx: -0.58,  cy:  0.35,  cz:  0,     area: 0.65 * 1.1  },
-        { w: 0.14, h: 0.65, d: 1.1,  cx:  0.58,  cy:  0.35,  cz:  0,     area: 0.65 * 1.1  },
-        { w: 0.13, h: 0.90, d: 0.13, cx: -0.55,  cy: -0.51,  cz: -0.44,  area: 0.13 * 0.9  },
-        { w: 0.13, h: 0.90, d: 0.13, cx:  0.55,  cy: -0.51,  cz: -0.44,  area: 0.13 * 0.9  },
-        { w: 0.13, h: 0.90, d: 0.13, cx: -0.55,  cy: -0.51,  cz:  0.44,  area: 0.13 * 0.9  },
-        { w: 0.13, h: 0.90, d: 0.13, cx:  0.55,  cy: -0.51,  cz:  0.44,  area: 0.13 * 0.9  },
-    ], N);
-
-    /* Forme 1 : Globe terrestre */
-    const globe = new Float32Array(N * 3);
-    for (let i = 0; i < N; i++) {
-        const phi = Math.acos(2 * Math.random() - 1);
-        const theta = 2 * Math.PI * Math.random();
-        const r = 1.28 + (Math.random() - 0.5) * 0.08;
-        globe[i * 3]     = r * Math.sin(phi) * Math.cos(theta);
-        globe[i * 3 + 1] = r * Math.cos(phi);
-        globe[i * 3 + 2] = r * Math.sin(phi) * Math.sin(theta);
-    }
-
-    /* Forme 2 : Bâtiment */
-    const building = buildMultiBox([
-        { w: 1.0,  h: 2.7, d: 0.75, cx: -0.1, cy:  0.25, cz: 0, area: 1.0  * 2.7 },
-        { w: 0.5,  h: 1.7, d: 0.50, cx:  0.7,  cy: -0.25, cz: 0, area: 0.5  * 1.7 },
-        { w: 1.15, h: 0.1, d: 0.90, cx: -0.1, cy:  1.65, cz: 0, area: 1.15 * 0.9 },
-        { w: 0.60, h: 0.1, d: 0.60, cx:  0.7,  cy:  0.60, cz: 0, area: 0.6  * 0.6 },
-    ], N);
-
-    /* Forme 3 : Réseau de neurones */
-    const nn = new Float32Array(N * 3);
-    const LAYERS = [4, 6, 4];
-    const LAYER_X = [-1.5, 0, 1.5];
     const layerNodes = LAYERS.map((count, li) =>
         Array.from({ length: count }, (_, ni) =>
             new THREE.Vector3(LAYER_X[li], (ni - (count - 1) / 2) * 0.57, 0)
         )
     );
-    const allNodes = layerNodes.flat();
-    const conns: [THREE.Vector3, THREE.Vector3][] = [];
-    for (let li = 0; li < layerNodes.length - 1; li++)
-        layerNodes[li].forEach(a => layerNodes[li + 1].forEach(b => conns.push([a, b])));
-    const nodeN = Math.floor(N * 0.45);
-    for (let i = 0; i < nodeN; i++) {
-        const n = allNodes[i % allNodes.length];
-        nn[i * 3]     = n.x + (Math.random() - 0.5) * 0.16;
-        nn[i * 3 + 1] = n.y + (Math.random() - 0.5) * 0.16;
-        nn[i * 3 + 2] = n.z + (Math.random() - 0.5) * 0.16;
-    }
-    for (let i = nodeN; i < N; i++) {
-        const [a, b] = conns[i % conns.length];
-        const t = Math.random();
-        nn[i * 3]     = a.x + (b.x - a.x) * t;
-        nn[i * 3 + 1] = a.y + (b.y - a.y) * t;
-        nn[i * 3 + 2] = a.z + (b.z - a.z) * t;
-    }
 
-    return [chair, globe, building, nn];
+    // Connexions inter-couches
+    for (let li = 0; li < layerNodes.length - 1; li++)
+        layerNodes[li].forEach(a => layerNodes[li + 1].forEach(b => edges.push([a.clone(), b.clone()])));
+
+    // Cercles de nœuds (wireframe sphère simplifiée)
+    layerNodes.flat().forEach(n => {
+        for (let i = 0; i < NODE_SEGS; i++) {
+            const t0 = (i       / NODE_SEGS) * Math.PI * 2;
+            const t1 = ((i + 1) / NODE_SEGS) * Math.PI * 2;
+            edges.push([
+                new THREE.Vector3(n.x + NODE_R * Math.cos(t0), n.y + NODE_R * Math.sin(t0), n.z),
+                new THREE.Vector3(n.x + NODE_R * Math.cos(t1), n.y + NODE_R * Math.sin(t1), n.z),
+            ]);
+        }
+    });
+    return edges; // ~48 connexions + 14*10=140 arcs = ~188 arêtes
 }
 
-/* ── Définitions des géométries wireframe ────────────────────────────── */
-type MeshBox = { args: [number, number, number]; pos: [number, number, number] };
+/* ── Resampling : normalise à exactement N segments (cycle si besoin) ── */
+function buildEdgeArray(edges: Edge[], N: number): Float32Array {
+    const arr = new Float32Array(N * 6);
+    for (let i = 0; i < N; i++) {
+        const [a, b] = edges[i % edges.length];
+        arr[i * 6]     = a.x; arr[i * 6 + 1] = a.y; arr[i * 6 + 2] = a.z;
+        arr[i * 6 + 3] = b.x; arr[i * 6 + 4] = b.y; arr[i * 6 + 5] = b.z;
+    }
+    return arr;
+}
 
-const CHAIR_BOXES: MeshBox[] = [
-    { args: [1.3,  0.13, 1.1 ], pos: [ 0,     0,     0    ] }, // assise
-    { args: [1.3,  1.15, 0.13], pos: [ 0,     0.60, -0.49 ] }, // dossier
-    { args: [0.14, 0.65, 1.1 ], pos: [-0.58,  0.35,  0    ] }, // accoudoir G
-    { args: [0.14, 0.65, 1.1 ], pos: [ 0.58,  0.35,  0    ] }, // accoudoir D
-    { args: [0.13, 0.9,  0.13], pos: [-0.55, -0.51, -0.44 ] }, // pied AVG
-    { args: [0.13, 0.9,  0.13], pos: [ 0.55, -0.51, -0.44 ] }, // pied AVD
-    { args: [0.13, 0.9,  0.13], pos: [-0.55, -0.51,  0.44 ] }, // pied ARG
-    { args: [0.13, 0.9,  0.13], pos: [ 0.55, -0.51,  0.44 ] }, // pied ARD
-];
-
-const BUILD_BOXES: MeshBox[] = [
-    { args: [1.0,  2.7,  0.75], pos: [-0.1,  0.25, 0] }, // tour principale
-    { args: [0.5,  1.7,  0.50], pos: [ 0.7, -0.25, 0] }, // tour annexe
-    { args: [1.15, 0.1,  0.90], pos: [-0.1,  1.65, 0] }, // toit principal
-    { args: [0.60, 0.1,  0.60], pos: [ 0.7,  0.60, 0] }, // toit annexe
-];
-
-const NN_LAYERS  = [4, 6, 4];
-const NN_LAYER_X = [-1.5, 0, 1.5];
-
-/* ── Composant MorphingScene ─────────────────────────────────────────── */
+/* ── Composant ───────────────────────────────────────────────────────── */
 function MorphingScene() {
-    const groupRef   = useRef<THREE.Group>(null);
+    const groupRef = useRef<THREE.Group>(null);
     const morphState = useRef({ idx: 0, timer: 0 });
 
-    /* -- Particules (fond de détail) ------------------------------------ */
-    const shapes    = useMemo(() => buildMorphShapes(), []);
+    // Pré-calcul des 3 shapes (une seule fois au montage)
+    const shapes = useMemo(() => [
+        buildEdgeArray(buildGlobeEdges(1.25), N_SEGS),
+        buildEdgeArray(buildBuildingEdges(),  N_SEGS),
+        buildEdgeArray(buildNNEdges(),        N_SEGS),
+    ], []);
+
+    // Buffer courant (muté dans useFrame)
     const positions = useMemo(() => new Float32Array(shapes[0]), [shapes]);
-    const ptGeo = useMemo(() => {
+
+    // Géométrie unique partagée par le LineSegments
+    const geo = useMemo(() => {
         const g = new THREE.BufferGeometry();
+        // N_SEGS paires de points → N_SEGS * 2 vertices, itemSize=3
         g.setAttribute('position', new THREE.BufferAttribute(positions, 3));
         return g;
     }, [positions]);
-    useEffect(() => () => { ptGeo.dispose(); }, [ptGeo]);
+    useEffect(() => () => { geo.dispose(); }, [geo]);
 
-    /* -- Refs matériaux wireframe (mis à jour chaque frame) ------------- */
-    const chairMats = useRef<(THREE.MeshBasicMaterial | null)[]>(Array(CHAIR_BOXES.length).fill(null));
-    const globeMat  = useRef<THREE.MeshBasicMaterial | null>(null);
-    const buildMats = useRef<(THREE.MeshBasicMaterial | null)[]>(Array(BUILD_BOXES.length).fill(null));
-    const nnLineMats = useRef<THREE.LineBasicMaterial[]>([]);
-    const nnNodeMats = useRef<(THREE.MeshBasicMaterial | null)[]>([]);
-
-    /* -- Géométrie du réseau de neurones -------------------------------- */
-    const { nnNodes, nnLineObjs } = useMemo(() => {
-        nnLineMats.current = []; // reset à chaque remount
-        const layerNodes = NN_LAYERS.map((count, li) =>
-            Array.from({ length: count }, (_, ni) =>
-                new THREE.Vector3(NN_LAYER_X[li], (ni - (count - 1) / 2) * 0.57, 0)
-            )
-        );
-        const nnNodes = layerNodes.flat();
-        const nnLineObjs: THREE.Line[] = [];
-        for (let li = 0; li < layerNodes.length - 1; li++) {
-            layerNodes[li].forEach(a => {
-                layerNodes[li + 1].forEach(b => {
-                    const geo = new THREE.BufferGeometry().setFromPoints([a, b]);
-                    const mat = new THREE.LineBasicMaterial({ color: WF_COLOR, transparent: true, opacity: 0 });
-                    nnLineMats.current.push(mat);
-                    nnLineObjs.push(new THREE.Line(geo, mat));
-                });
-            });
-        }
-        return { nnNodes, nnLineObjs };
-    }, []);
-    useEffect(() => () => {
-        nnLineObjs.forEach(l => { l.geometry.dispose(); (l.material as THREE.Material).dispose(); });
-    }, [nnLineObjs]);
-
-    /* -- Applique une opacité à tous les mats d'une forme --------------- */
-    const applyOpacity = (idx: number, op: number) => {
-        switch (idx) {
-            case 0: chairMats.current.forEach(m => { if (m) m.opacity = op; }); break;
-            case 1: if (globeMat.current) globeMat.current.opacity = op; break;
-            case 2: buildMats.current.forEach(m => { if (m) m.opacity = op; }); break;
-            case 3:
-                nnLineMats.current.forEach(m => { m.opacity = op * 0.65; });
-                nnNodeMats.current.forEach(m => { if (m) m.opacity = op; });
-                break;
-        }
-    };
-
-    /* -- Animation ------------------------------------------------------ */
     useFrame(({ clock }, delta) => {
         const s     = morphState.current;
         s.timer    += delta;
         const CYCLE = HOLD_SEC + MORPH_SEC;
         const nextIdx = (s.idx + 1) % shapes.length;
-        let morphT = 0;
 
         if (s.timer >= CYCLE) {
             // Avance à la forme suivante
             s.idx   = nextIdx;
             s.timer -= CYCLE;
-            for (let i = 0; i < MORPH_COUNT * 3; i++) positions[i] = shapes[s.idx][i];
-            (ptGeo.attributes.position as THREE.BufferAttribute).needsUpdate = true;
+            for (let i = 0; i < N_SEGS * 6; i++) positions[i] = shapes[s.idx][i];
+            (geo.attributes.position as THREE.BufferAttribute).needsUpdate = true;
         } else if (s.timer >= HOLD_SEC) {
-            // Phase de transition — morph des particules
+            // Interpolation réelle des positions
             const raw = (s.timer - HOLD_SEC) / MORPH_SEC;
-            morphT = raw < 0.5 ? 2 * raw * raw : 1 - Math.pow(-2 * raw + 2, 2) / 2;
+            const t = raw < 0.5 ? 2 * raw * raw : 1 - Math.pow(-2 * raw + 2, 2) / 2;
             const from = shapes[s.idx], to = shapes[nextIdx];
-            for (let i = 0; i < MORPH_COUNT * 3; i++)
-                positions[i] = from[i] + (to[i] - from[i]) * morphT;
-            (ptGeo.attributes.position as THREE.BufferAttribute).needsUpdate = true;
+            for (let i = 0; i < N_SEGS * 6; i++)
+                positions[i] = from[i] + (to[i] - from[i]) * t;
+            (geo.attributes.position as THREE.BufferAttribute).needsUpdate = true;
         }
 
-        // Crossfade des wireframes chaque frame
-        for (let i = 0; i < 4; i++) {
-            let op = 0;
-            if      (i === s.idx)            op = (1 - morphT) * WF_OPACITY;
-            else if (i === (s.idx + 1) % 4)  op = morphT * WF_OPACITY;
-            applyOpacity(i, op);
-        }
-
-        // Rotation douce + respiration verticale
         if (groupRef.current) {
-            groupRef.current.rotation.y = clock.getElapsedTime() * 0.14;
-            groupRef.current.position.y = Math.sin(clock.getElapsedTime() * 0.45) * 0.12;
+            groupRef.current.rotation.y  = clock.getElapsedTime() * 0.14;
+            groupRef.current.position.y  = Math.sin(clock.getElapsedTime() * 0.45) * 0.12;
         }
     });
 
     return (
         <group ref={groupRef} position={[1.0, 0.2, 0]}>
-
-            {/* Particules — fond de détail subtil */}
-            <points>
-                <primitive object={ptGeo} attach="geometry" />
-                <pointsMaterial size={0.020} color={WF_COLOR} transparent opacity={PT_OPACITY} sizeAttenuation />
-            </points>
-
-            {/* Forme 0 : Fauteuil (visible au départ) */}
-            {CHAIR_BOXES.map(({ args, pos }, i) => (
-                <mesh key={`chair-${i}`} position={pos}>
-                    <boxGeometry args={args} />
-                    <meshBasicMaterial
-                        ref={(m: THREE.MeshBasicMaterial | null) => { chairMats.current[i] = m; }}
-                        color={WF_COLOR}
-                        wireframe
-                        transparent
-                        opacity={WF_OPACITY}
-                    />
-                </mesh>
-            ))}
-
-            {/* Forme 1 : Globe (initialement invisible) */}
-            <mesh>
-                <sphereGeometry args={[1.28, 18, 12]} />
-                <meshBasicMaterial
-                    ref={(m: THREE.MeshBasicMaterial | null) => { globeMat.current = m; }}
-                    color={WF_COLOR}
-                    wireframe
-                    transparent
-                    opacity={0}
-                />
-            </mesh>
-
-            {/* Forme 2 : Bâtiment (initialement invisible) */}
-            {BUILD_BOXES.map(({ args, pos }, i) => (
-                <mesh key={`build-${i}`} position={pos}>
-                    <boxGeometry args={args} />
-                    <meshBasicMaterial
-                        ref={(m: THREE.MeshBasicMaterial | null) => { buildMats.current[i] = m; }}
-                        color={WF_COLOR}
-                        wireframe
-                        transparent
-                        opacity={0}
-                    />
-                </mesh>
-            ))}
-
-            {/* Forme 3 : Réseau de neurones — connexions (initialement invisible) */}
-            {nnLineObjs.map((line, i) => (
-                <primitive key={`nn-line-${i}`} object={line} />
-            ))}
-
-            {/* Réseau de neurones — nœuds sphériques */}
-            {nnNodes.map((n, i) => (
-                <mesh key={`nn-node-${i}`} position={n}>
-                    <sphereGeometry args={[0.115, 8, 8]} />
-                    <meshBasicMaterial
-                        ref={(m: THREE.MeshBasicMaterial | null) => { nnNodeMats.current[i] = m; }}
-                        color={WF_COLOR}
-                        wireframe
-                        transparent
-                        opacity={0}
-                    />
-                </mesh>
-            ))}
-
+            <lineSegments>
+                <primitive object={geo} attach="geometry" />
+                <lineBasicMaterial color={WF_COLOR} transparent opacity={0.60} />
+            </lineSegments>
         </group>
     );
 }
@@ -319,9 +181,9 @@ function MorphingScene() {
 const LIMIT_COLORS = ['#ff6b6b', '#ffd93d', '#ff9a3c', '#c44dff', '#45b7d1'];
 
 function LimitsScene() {
-    const groupRef = useRef<THREE.Group>(null);
+    const groupRef  = useRef<THREE.Group>(null);
     const sphereRefs = useRef<(THREE.Mesh | null)[]>([]);
-    const cageRefs = useRef<(THREE.Mesh | null)[]>([]);
+    const cageRefs   = useRef<(THREE.Mesh | null)[]>([]);
 
     const cells = useMemo(() => LIMIT_COLORS.map((color, i) => ({
         color,
@@ -335,8 +197,8 @@ function LimitsScene() {
         if (groupRef.current) groupRef.current.position.y = Math.sin(t * 0.60) * 0.06;
         cells.forEach(({ cx, cy, phase }, i) => {
             const sphere = sphereRefs.current[i];
-            const cage = cageRefs.current[i];
-            const LIMIT = 0.24;
+            const cage   = cageRefs.current[i];
+            const LIMIT  = 0.24;
             if (sphere) sphere.position.set(
                 cx + Math.max(-LIMIT, Math.min(LIMIT, Math.sin(t * 2.10 + phase) * LIMIT)),
                 cy + Math.max(-LIMIT, Math.min(LIMIT, Math.sin(t * 2.70 + phase * 1.5) * LIMIT)),
@@ -368,11 +230,11 @@ function LimitsScene() {
    SLIDE 14 — TECHNOLOGIES ÉMERGENTES  (point cloud + glowing core + rays)
 ═══════════════════════════════════════════════════════════════════════════ */
 function FutureScene() {
-    const groupRef = useRef<THREE.Group>(null);
-    const coreRef = useRef<THREE.Mesh>(null);
+    const groupRef  = useRef<THREE.Group>(null);
+    const coreRef   = useRef<THREE.Mesh>(null);
     const pointsRef = useRef<THREE.Points>(null);
-    const coreMat = useRef<THREE.MeshStandardMaterial>(null);
-    const rayMat = useRef<THREE.LineBasicMaterial>(null);
+    const coreMat   = useRef<THREE.MeshStandardMaterial>(null);
+    const rayMat    = useRef<THREE.LineBasicMaterial>(null);
     const accent = '#2eb8f5';
     const ac = useMemo(() => new THREE.Color(accent), []);
 
@@ -383,7 +245,7 @@ function FutureScene() {
         for (let i = 0; i < COUNT; i++) {
             const phi = Math.acos(2 * Math.random() - 1), theta = 2 * Math.PI * Math.random();
             const r = 1.20 + (Math.random() - 0.5) * 0.35;
-            pos[i * 3] = r * Math.sin(phi) * Math.cos(theta);
+            pos[i * 3]     = r * Math.sin(phi) * Math.cos(theta);
             pos[i * 3 + 1] = r * Math.cos(phi);
             pos[i * 3 + 2] = r * Math.sin(phi) * Math.sin(theta);
             const c = ac.clone().offsetHSL(0, 0, (Math.random() - 0.5) * 0.30);
@@ -391,7 +253,7 @@ function FutureScene() {
         }
         const g = new THREE.BufferGeometry();
         g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-        g.setAttribute('color', new THREE.BufferAttribute(col, 3));
+        g.setAttribute('color',    new THREE.BufferAttribute(col, 3));
         return g;
     }, [ac]);
 
@@ -409,11 +271,11 @@ function FutureScene() {
 
     useFrame(({ clock }) => {
         const t = clock.getElapsedTime();
-        if (groupRef.current) groupRef.current.position.y = Math.sin(t * 0.85) * 0.07;
+        if (groupRef.current)  groupRef.current.position.y = Math.sin(t * 0.85) * 0.07;
         if (pointsRef.current) { pointsRef.current.rotation.y = t * 0.18; pointsRef.current.rotation.x = t * 0.04; }
-        if (coreRef.current) { coreRef.current.rotation.y = t * 0.55; coreRef.current.rotation.z = t * 0.30; }
-        if (coreMat.current) coreMat.current.emissiveIntensity = 1.20 + 0.90 * Math.sin(t * 2.5);
-        if (rayMat.current) rayMat.current.opacity = 0.15 + 0.30 * Math.sin(t * 3.2);
+        if (coreRef.current)   { coreRef.current.rotation.y = t * 0.55; coreRef.current.rotation.z = t * 0.30; }
+        if (coreMat.current)   coreMat.current.emissiveIntensity = 1.20 + 0.90 * Math.sin(t * 2.5);
+        if (rayMat.current)    rayMat.current.opacity = 0.15 + 0.30 * Math.sin(t * 3.2);
     });
 
     return (
@@ -444,18 +306,12 @@ export function AvenirScene({ activeSlide }: { activeSlide: number }) {
 
     return (
         <group position={[100, 0, 0]}>
-            {/* Scoped 3-point lighting for this world region */}
             <ambientLight intensity={0.55} />
-            <directionalLight position={[3, 4, 3]} intensity={1.40} color="#fff4cc" />
+            <directionalLight position={[3, 4, 3]}  intensity={1.40} color="#fff4cc" />
             <directionalLight position={[-3, 1, -2]} intensity={0.70} color="#aadeff" />
 
-            {/* Slide 12 — forme wireframe qui morphe */}
             {isSlide12 && <MorphingScene />}
-
-            {/* Slide 13 — Les limites */}
             {isSlide13 && <LimitsScene />}
-
-            {/* Slide 14 — Technologies émergentes */}
             {isSlide14 && <FutureScene />}
         </group>
     );

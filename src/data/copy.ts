@@ -3,7 +3,6 @@ import { SLIDES } from './slides';
 export const SLIDE_COPY = [
     // 0 - Plan
     {
-        eyebrow: 'SOMMAIRE',
         bodyStyle: { fontSize: 'md', },
         body: `# 1. Avant WebGL
 
@@ -38,7 +37,6 @@ export const SLIDE_COPY = [
     },
     // 1 – Plugin Era
     {
-        eyebrow: 'LE WEB 3D AVANT 2011',
         bodyStyle: { fontSize: 'md' },
         body:
 
@@ -62,7 +60,6 @@ export const SLIDE_COPY = [
     },
     // 2 – WebGL arrival
     {
-        eyebrow: SLIDES[3].subject,
         bodyStyle: { fontSize: 'sm' },
         body:
             `# ORIGINE
@@ -92,7 +89,6 @@ export const SLIDE_COPY = [
     },
     // 3 – Pipeline
     {
-        eyebrow: SLIDES[3].subject,
         bodyStyle: { fontSize: 'md' },
         body:
             `# CPU(Séquentiel) — Le Cerveau
@@ -110,7 +106,6 @@ export const SLIDE_COPY = [
     },
     // 4 – La limite
     {
-        eyebrow: SLIDES[3].subject,
         bodyStyle: { fontSize: 'md' },
         body:
             `Le problème: les "Draw Calls"(appels de dessin).
@@ -121,7 +116,6 @@ export const SLIDE_COPY = [
     },
     // 5 – WebGPU
     {
-        eyebrow: SLIDES[5].subject,
         bodyStyle: { fontSize: 'sm' },
         body:
             `WebGPU optimise pleinement l'utilisation du GPU.
@@ -152,8 +146,6 @@ export const SLIDE_COPY = [
     },
     // 6 – Three.js
     {
-        //eyebrow: 'L\'ABSTRACTION DE RÉFÉRENCE',
-        eyebrow: SLIDES[6].subject,
         bodyStyle: { fontSize: 'md' },
         body:
             `Librairie JavaScript orientée objet créée par Ricardo Cabello en 2010.
@@ -167,8 +159,6 @@ Désormais la norme pour le développement 3D sur le web.`,
     },
     // 7 – L'Architecture Three.js (slide idx=2)
     {
-        //eyebrow: 'LES 3 PRIMITIVES',
-        eyebrow: SLIDES[6].subject,
         bodyStyle: { fontSize: 'md' },
         body:
             `Toute scène Three.js est minimalement composée de ces 3 éléments.
@@ -199,7 +189,6 @@ document.body.appendChild(renderer.domElement);`,
     },
     // 8 – Les objets 3D (slide idx=3)
     {
-        eyebrow: SLIDES[6].subject,
         bodyStyle: { fontSize: 'md' },
         body:
             `
@@ -227,7 +216,6 @@ renderer.setAnimationLoop(() => {
     },
     // 9 – Matériaux
     {
-        eyebrow: SLIDES[6].subject,
         bodyStyle: { fontSize: 'lg' },
         body:
             `Les matériaux (MeshStandardMaterial, MeshPhysicalMaterial) réagissent avec la lumière pour produire des reflets, de la rugosité et du métal.
@@ -246,7 +234,6 @@ scene.add(sphere);`,
     },
     // 10 – Lumières
     {
-        eyebrow: SLIDES[6].subject,
         bodyStyle: { fontSize: 'lg' },
         body:
             `Introduit différents objets lumineux (AmbientLight, DirectionalLight, PointLight…) pour éclairer la scène.
@@ -275,7 +262,6 @@ scene.add(point);`,
     },
     // 11 – Alternatives / Écosystème
     {
-        eyebrow: SLIDES[6].subject,
         bodyStyle: { fontSize: 'md' },
         body:
             `Three.js est loin d'être le seul acteur de l'écosystème 3D web.
@@ -287,33 +273,33 @@ scene.add(point);`,
     },
     // 12 – Cas d'utilisation
     {
-        eyebrow: SLIDES[13].subject,
         bodyStyle: { fontSize: 'sm' },
         body:
             `WebGL, WebGPU et Three.js alimentent des industries entières.
 
-• E-commerce : configurateurs 3D interactifs (Nike, IKEA, Tesla) directement dans le navigateur.
-• Architecture & BIM : visualisation de bâtiments en temps réel sans logiciel installé.
-• Simulation scientifique : dynamique des fluides, cartographie géospatiale (Cesium, deck.gl).
+• E-commerce : visualisation de produits en 3D directement dans le navigateur.
+• Architecture : visualisation de bâtiments en temps réel sans logiciel installé.
+• Simulation scientifique : dynamique des fluides, cartographie géospatiale.
 • Jeux & expériences : jeux web, expériences immersives marketing, musées numériques.
 • IA & Machine Learning : TensorFlow.js exploite WebGPU pour exécuter des modèles d'IA localement.`,
         cta: null,
     },
     // 13 – Les limites actuelles
     {
-        eyebrow: 'CE QUE LE WEB 3D NE PEUT PAS ENCORE FAIRE',
         bodyStyle: { fontSize: 'sm' },
         body:
             `Malgré ses progrès spectaculaires, le web 3D se heurte à des obstacles structurels.
 
 • Mémoire GPU limitée : le navigateur impose un plafond strict sur les scènes très lourdes.
-• Support mobile fragmenté : WebGPU n'est pas encore disponible sur tous les navigateurs mobiles.
-• Chargement réseau : les assets 3D restent lourds sur connexion lente (glTF, Draco, KTX2).`,
+• Debugging difficile : les outils d'inspection du pipeline GPU sont encore immatures.
+
+• Courbe d'apprentissage : maîtriser shaders, matrices et pipeline GPU demande une expertise rare.
+
+• Support fragmenté : WebGPU n'est pas encore disponible sur tous les navigateurs mobiles.`,
         cta: null,
     },
     // 14 – Technologies émergentes
     {
-        eyebrow: 'CE QUE WEBGPU REND POSSIBLE — DEMAIN',
         bodyStyle: { fontSize: 'sm' },
         body:
             `WebGPU n'est pas seulement une évolution du rendu — c'est une plateforme de calcul généraliste.
