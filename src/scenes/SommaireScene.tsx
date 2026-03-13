@@ -23,7 +23,7 @@ export function SommaireScene() {
                 color={hx}
                 anchorX="center"
                 anchorY="middle"
-                font="/fonts/nord-minimal/Web Fonts/NORD-Regular.woff"
+
             >
                 {""}
             </Text>
