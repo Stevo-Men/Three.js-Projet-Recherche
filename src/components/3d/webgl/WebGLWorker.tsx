@@ -11,10 +11,11 @@ interface WebGLWorkerProps {
     isActive: boolean;
     speed: number;
     initialOffset: number;
+    syncProgress?: React.MutableRefObject<number>;
 }
 
 export function WebGLWorker({
-    position, cpuPosition, hx, normalColor, isLimitSlide, isActive, speed, initialOffset
+    position, cpuPosition, hx, normalColor, isLimitSlide, isActive, speed, initialOffset, syncProgress
 }: WebGLWorkerProps) {
     const packetRef = useRef<THREE.Mesh<any, any>>(null);
     const cubeRef = useRef<THREE.Mesh<any, any>>(null);
@@ -30,11 +31,26 @@ export function WebGLWorker({
     }, [hx, cpuPosition, position]);
 
     useFrame((_state, delta) => {
-        progress.current = (progress.current + delta * speed) % 1;
-        const t = progress.current;
+        let t = 0;
+        let isPacketVisible = true;
+
+        if (isLimitSlide && syncProgress) {
+            const globalPhase = syncProgress.current;
+            if (globalPhase < 1) {
+                // CPU -> Lozange phase, GPU worker waits
+                t = 0;
+                isPacketVisible = false;
+            } else {
+                // Lozange -> GPU worker phase
+                t = globalPhase - 1;
+            }
+        } else {
+            progress.current = (progress.current + delta * speed) % 1;
+            t = progress.current;
+        }
 
         if (packetRef.current) {
-            if (isLimitSlide && !isActive) {
+            if (!isActive || !isPacketVisible) {
                 packetRef.current.visible = false;
             } else {
                 packetRef.current.visible = true;
@@ -45,7 +61,7 @@ export function WebGLWorker({
 
         if (cubeRef.current) {
             if (isLimitSlide) {
-                if (isActive && t > 0.88) {
+                if (isActive && t > 0.88 && isPacketVisible) {
                     const pulse = 1 + (t - 0.88) * 3;
                     cubeRef.current.scale.setScalar(pulse);
                     cubeRef.current.material.opacity = 0.7;
