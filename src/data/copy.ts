@@ -43,18 +43,18 @@ export const SLIDE_COPY = [
             `
 # Le rendu logiciel
 
-• Rendu graphique pixel par pixel via le CPU (Canvas 2D ou Applets Java)
+• Rendu graphique pixel par pixel via le CPU - Canvas 2D
 • Calcul de position, lumière et couleur de chaque pixel un par un
-• Performances catastrophiques (< 15 FPS)
+• Performances catastrophiques sous 15 FPS
 • Graphismes limités au fil de fer (Wireframe) ou couleurs plates
 
 
 # L'ère des plugins
 
-• Adobe Stage3D, Unity Web Player, VRML
-• Permet de sortir du navigateur et accéder au système d'exploitation
+• Adobe Stage3D, Unity Web Player, Java Applets
 • Téléchargement et mise à jour du plugin requis
 • Failles critiques constantes 
+• Permet de sortir du navigateur et accéder au système d'exploitation
 • Non supporté sur mobile`,
         cta: null,
     },
@@ -73,12 +73,13 @@ export const SLIDE_COPY = [
 
 # CONCEPT
 
-• Transformer des vecteurs mathématiques(triangles) en une grille de pixels`,
+• Permet à Javascript de donner des instructions au GPU de manière sécurisée pour transformer des vecteurs mathématiques (triangles) en une grille de pixels`,
+
         table: {
             headers: ['Année', 'Statut', 'Événement'],
             rows: [
-                ['2011', 'Expérimental', 'Sortie officielle - Adopté par Chrome et Firefox.'],
-                ['2013', 'En croissance', 'Microsoft cède enfin avec IE11.'],
+                ['2011', 'Apparition', 'Sortie officielle - Adopté par Chrome et Firefox.'],
+                ['2013', 'Croissance', 'Microsoft cède enfin avec IE11.'],
                 ['2014', 'Universel', 'Apple active WebGL sur iOS 8. La 3D devient accessible partout.'],
                 ['2017', 'Standardisé', 'Sortie de WebGL 2.0 (OpenGL ES 2.0 -> OpenGL ES 3.0).'],
             ],
@@ -102,6 +103,12 @@ export const SLIDE_COPY = [
 
 • Spécialisé dans le calcul matriciel en parallèle
 • Exécute des milliers de calculs simples simultanément`,
+        table: {
+            headers: ['Du code ', ' au binaire '],
+            rows: [
+                ['WebGL', 'JS → WebGL API → Driver Graphiques / ANGLE → GPU'],
+            ],
+        },
         cta: null,
     },
     // 4 – La limite
@@ -112,6 +119,7 @@ export const SLIDE_COPY = [
 
 • Pour dessiner 1 objet, le CPU doit parler au GPU.
 • Pour dessiner 10 000 objets, le CPU sature, même si le GPU dort.`,
+
         cta: null,
     },
     // 5 – WebGPU
@@ -138,7 +146,7 @@ export const SLIDE_COPY = [
         table: {
             headers: ['', ''],
             rows: [
-                ['WebGL', 'JS → WebGL API → OpenGL ES → Driver natif → GPU'],
+                ['WebGL', 'JS → WebGL API → Traduction → Driver Graphiques / ANGLE → GPU'],
                 ['WebGPU', 'JS → WebGPU API → Vulkan / Metal / DX12 → GPU'],
             ],
         },

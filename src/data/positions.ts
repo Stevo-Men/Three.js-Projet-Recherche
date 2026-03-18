@@ -2,7 +2,7 @@ export const POSITIONS = [
     { side: 'center', top: '10%' }, // 0 Plan
     { side: 'left', top: '12%' },  // 1 Plugin Era
     { side: 'left', top: '18%' },  // 1  WebGL arrival
-    { side: 'right', top: '15%' },  // 2  Pipeline
+    { side: 'left', top: '15%' },  // 2  Pipeline
     { side: 'left', top: '52%' },  // 3  Transition
     { side: 'left', top: '15%' },  // 4  WebGPU
     { side: 'left', top: '50%' },  // 5  Three.js
