@@ -296,14 +296,15 @@ scene.add(point);`,
     {
         bodyStyle: { fontSize: 'sm' },
         body:
-            `Malgré ses progrès spectaculaires, le web 3D se heurte à des obstacles structurels.
+            `En développement constant, le web 3D se heurte encore à des obstacles.
 
-• Mémoire GPU limitée : le navigateur impose un plafond strict sur les scènes très lourdes.
-• Debugging difficile : les outils d'inspection du pipeline GPU sont encore immatures.
+• Mémoire GPU limitée : le navigateur impose un plafond sur les scènes très lourdes.
 
-• Courbe d'apprentissage : maîtriser shaders, matrices et pipeline GPU demande une expertise rare.
+• Courbe d'apprentissage : modélisation, animations, shaders, matrices et pipeline GPU.
 
-• Support fragmenté : WebGPU n'est pas encore disponible sur tous les navigateurs mobiles.`,
+• Debugging difficile : erreurs vagues et nécessite un inspecteur tiers.
+
+• Support : WebGPU n'est pas encore complètement adopté.`,
         cta: null,
     },
     // 14 – Technologies émergentes
@@ -315,8 +316,7 @@ scene.add(point);`,
 • Gaussian Splatting : rendu de scènes réelles capturées par IA, déjà expérimenté via WebGPU.
 • Simulation physique : fluides, tissus, corps mous calculés entièrement sur GPU, sans serveur.
 • LLMs dans le navigateur : WebGPU permet d'exécuter de petits modèles de langage localement.
-• WebXR + WebGPU : réalité augmentée et virtuelle natives avec rendu GPU haute performance.
-• Path tracing temps réel : éclairage global photoréaliste commence à devenir envisageable.`,
+• WebXR + WebGPU : réalité augmentée et virtuelle natives avec rendu GPU haute performance.`,
         cta: 'WEBGPU EXPLAINER →',
     },
 ];
