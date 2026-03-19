@@ -146,8 +146,8 @@ export const SLIDE_COPY = [
         table: {
             headers: ['', ''],
             rows: [
-                ['WebGL', 'JS → WebGL API → Traduction → Driver Graphiques / ANGLE → GPU'],
-                ['WebGPU', 'JS → WebGPU API → Vulkan / Metal / DX12 → GPU'],
+                ['', 'JS → WebGL API → Traduction → Driver Graphiques / ANGLE → GPU'],
+                ['', 'JS → WebGPU API → Vulkan / Metal / DX12 → GPU'],
             ],
         },
         cta: null,

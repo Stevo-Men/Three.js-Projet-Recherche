@@ -78,8 +78,8 @@ function PostEffects({ fx, isThreeJS }: { fx: Record<string, boolean>; isThreeJS
     return (
         <EffectComposer>
             {fx.smaa ? <SMAA /> : <></>}
-            {fx.bloom ? <Bloom luminanceThreshold={0.15} intensity={2.2} mipmapBlur /> : <></>}
-            {fx.dof ? <DepthOfField focusDistance={0.025} focalLength={0.06} bokehScale={4} /> : <></>}
+            {fx.bloom ? <Bloom luminanceThreshold={1.9} intensity={1.8} mipmapBlur /> : <></>}
+            {fx.dof ? <DepthOfField focusDistance={4} focalLength={2.6} bokehScale={3} /> : <></>}
             {fx.chromatic ? (
                 <ChromaticAberration
                     blendFunction={BlendFunction.NORMAL}
@@ -94,15 +94,7 @@ function PostEffects({ fx, isThreeJS }: { fx: Record<string, boolean>; isThreeJS
                     mode={GlitchMode.SPORADIC}
                 />
             ) : <></>}
-            {fx.outline ? (
-                <Outline
-                    blur
-                    visibleEdgeColor={0xffaa00}
-                    hiddenEdgeColor={0x443300}
-                    edgeStrength={6}
-                    width={800}
-                />
-            ) : <></>}
+
             {fx.vignette ? <Vignette eskil={false} offset={0.45} darkness={0.75} /> : <></>}
         </EffectComposer>
     );
