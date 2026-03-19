@@ -5,8 +5,7 @@ export const EFFECTS = [
     { key: 'dof', label: 'Depth of Field', desc: 'Bokeh lens blur' },
     { key: 'chromatic', label: 'Chromatic', desc: 'RGB channel split' },
     { key: 'glitch', label: 'Glitch', desc: 'Digital signal corruption' },
-    { key: 'outline', label: 'Outline', desc: 'Edge detection on geometry' },
-    { key: 'smaa', label: 'Antialiasing', desc: 'SMAA edge smoothing' },
+
     { key: 'vignette', label: 'Vignette', desc: 'Cinematic edge darkening' },
 ];
 

@@ -3,8 +3,8 @@ import { Canvas, useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import {
     EffectComposer, Bloom, DepthOfField,
-    ChromaticAberration, Glitch, Outline,
-    SMAA, Vignette, Selection,
+    ChromaticAberration, Glitch,
+    Vignette, Selection,
 } from '@react-three/postprocessing';
 import { BlendFunction, GlitchMode } from 'postprocessing';
 
@@ -77,7 +77,7 @@ function PostEffects({ fx, isThreeJS }: { fx: Record<string, boolean>; isThreeJS
 
     return (
         <EffectComposer>
-            {fx.smaa ? <SMAA /> : <></>}
+
             {fx.bloom ? <Bloom luminanceThreshold={1.9} intensity={1.8} mipmapBlur /> : <></>}
             {fx.dof ? <DepthOfField focusDistance={4} focalLength={2.6} bokehScale={3} /> : <></>}
             {fx.chromatic ? (

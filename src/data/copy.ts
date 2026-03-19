@@ -96,7 +96,7 @@ export const SLIDE_COPY = [
 
 • Gère la logique, les calculs et l'état global
 
-• Envoie des instructions de haut niveau(ex: "Dessine cet objet")
+• Envoie des instructions de haut niveau
 
 
 # GPU(Parallèle) — Les Ouvriers
@@ -247,20 +247,20 @@ scene.add(sphere);`,
             `Introduit différents objets lumineux (AmbientLight, DirectionalLight, PointLight…) pour éclairer la scène.
 
         Sans lumière, les matériaux réagissant à la lumière apparaîtront noirs.`,
-        code: `// Lumière ambiante (éclairage global doux)
+        code: `// Lumière ambiante 
 const ambient = new THREE.AmbientLight(
   0xffffff, 0.4
 );
 scene.add(ambient);
 
-// Lumière directionnelle (soleil)
+// Lumière directionnelle 
 const light = new THREE.DirectionalLight(
   0xffffff, 1.5
 );
 light.position.set(5, 5, 5);
 scene.add(light);
 
-// Point lumineux (ampoule)
+// Point lumineux 
 const point = new THREE.PointLight(
   0xff8800, 2, 10
 );
@@ -311,12 +311,11 @@ scene.add(point);`,
     {
         bodyStyle: { fontSize: 'sm' },
         body:
-            `WebGPU n'est pas seulement une évolution du rendu — c'est une plateforme de calcul généraliste.
-
-• Gaussian Splatting : rendu de scènes réelles capturées par IA, déjà expérimenté via WebGPU.
-• Simulation physique : fluides, tissus, corps mous calculés entièrement sur GPU, sans serveur.
-• LLMs dans le navigateur : WebGPU permet d'exécuter de petits modèles de langage localement.
-• WebXR + WebGPU : réalité augmentée et virtuelle natives avec rendu GPU haute performance.`,
+            `WebGPU est plus qu'une évolution du rendu.
+    • LLMs dans le navigateur : WebGPU permet d'exécuter de petits modèles de langage localement.
+    • WebXR + WebGPU : réalité augmentée et virtuelle natives avec rendu GPU haute performance.
+    • Gaussian Splatting : rendu de scènes réelles capturées par IA, déjà expérimenté via WebGPU.
+    • Simulation physique : fluides, tissus, corps mous calculés entièrement sur GPU, sans serveur.`,
         cta: 'WEBGPU EXPLAINER →',
     },
 ];
