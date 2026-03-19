@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { useGLTF, useTexture } from '@react-three/drei';
 import { Select } from '@react-three/postprocessing';
@@ -50,9 +50,12 @@ export function ThreeJSScene({ activeSlide, activeEffects = {} }: { activeSlide:
         }
     }, [scene, showMaterials, hx]);
 
+    const showMaterialsRef = useRef(showMaterials);
+    showMaterialsRef.current = showMaterials;
+
     // Animate wheel textures
     useFrame((_state, delta) => {
-        if (materials) {
+        if (showMaterialsRef.current && materials) {
             Object.values(materials).forEach(mat => {
                 if ((mat.name.includes('pneu') || mat.name.includes('material_0')) && (mat as any).map) {
                     (mat as any).map.offset.y -= delta * 1.5;
@@ -70,7 +73,7 @@ export function ThreeJSScene({ activeSlide, activeEffects = {} }: { activeSlide:
     return (
         <group position={[70, -1, 0]}>
             {/* Scrolling wireframe ground */}
-            <WireframeGround color={hx} />
+            <WireframeGround color={hx} isMoving={showMaterials} />
 
             {/* Holographic screens — float left of the car */}
             <LogoScreen visible={showLogo} position={LOGO_POS} rotation={LOGO_ROT} />

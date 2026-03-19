@@ -312,10 +312,12 @@ scene.add(point);`,
         bodyStyle: { fontSize: 'sm' },
         body:
             `WebGPU est plus qu'une évolution du rendu.
-    • LLMs dans le navigateur : WebGPU permet d'exécuter de petits modèles de langage localement.
-    • WebXR + WebGPU : réalité augmentée et virtuelle natives avec rendu GPU haute performance.
-    • Gaussian Splatting : rendu de scènes réelles capturées par IA, déjà expérimenté via WebGPU.
-    • Simulation physique : fluides, tissus, corps mous calculés entièrement sur GPU, sans serveur.`,
-        cta: 'WEBGPU EXPLAINER →',
+
+• LLMs dans le navigateur : WebGPU permet d'exécuter de petits modèles de langage localement.
+• WebXR + WebGPU : réalité augmentée et virtuelle natives avec rendu GPU haute performance.
+• Simulation physique : fluides, tissus, corps mous calculés entièrement sur GPU, sans serveur.
+• Gaussian Splatting : rendu de scènes réelles capturées par IA, déjà expérimenté via WebGPU.`,
+        cta: 'Luma AI →',
+        ctaLink: 'https://lumalabs.ai/dashboard/captures',
     },
 ];

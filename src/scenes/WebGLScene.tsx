@@ -32,7 +32,6 @@ export function WebGLScene({ activeSlide }: { activeSlide: number }) {
         return out;
     }, []);
 
-    // Provide random fixed speeds and offsets via state (so it persists and matches useMemo pattern)
     const [packetsParams] = useState(() =>
         gpuPositions.map(() => ({
             offset: Math.random(),
@@ -40,15 +39,14 @@ export function WebGLScene({ activeSlide }: { activeSlide: number }) {
         }))
     );
 
-    // Is this the "La limite" sub-slide? (sceneId 2, idx 3)
     const slide = SLIDES[activeSlide];
     const isLimitSlide = slide && slide.sceneId === 2 && slide.idx === 3;
 
-    // ─── CPU settings ───────────────────────────────────────────
+
     const cpuSpeedMult = isLimitSlide ? 0.15 : 1;
     const targetCpuColor = isLimitSlide ? RED : normalColor;
 
-    // Only a few packets are active on limit slide (indices 0, 5, 11)
+
     const activePackets = useMemo(() => new Set([0, 5, 11]), []);
 
     const lozangeRef = useRef<THREE.Mesh<any, any>>(null);
@@ -71,7 +69,7 @@ export function WebGLScene({ activeSlide }: { activeSlide: number }) {
         }
 
         const maxPhase = isLimitSlide ? 2 : 1;
-        // Increase speed slightly on limit slide so the wait isn't too long
+
         const speed = isLimitSlide ? 0.4 : cpuSpeedMult;
 
         cpuProgress.current = (cpuProgress.current + (delta * speed * 0.5)) % maxPhase;

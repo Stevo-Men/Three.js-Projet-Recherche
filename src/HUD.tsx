@@ -86,7 +86,7 @@ export function HUD({ activeSlide, activeEffects, toggleEffect }: { activeSlide:
         };
     };
 
-    // paragraphs no longer needed — BodyContent handles parsing
+    // BodyContent
 
     return (
         <div className="sc-wrap" style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', pointerEvents: 'none', zIndex: 50 }}>
@@ -136,6 +136,7 @@ export function HUD({ activeSlide, activeEffects, toggleEffect }: { activeSlide:
                             }}
                             onMouseEnter={(e) => { (e.target as HTMLElement).style.color = '#fff'; (e.target as HTMLElement).style.borderColor = 'rgba(255,255,255,0.55)'; }}
                             onMouseLeave={(e) => { (e.target as HTMLElement).style.color = hexColor; (e.target as HTMLElement).style.borderColor = `${hexColor}44`; }}
+                            onClick={() => { if (copy.ctaLink) window.open(copy.ctaLink, '_blank'); }}
                         >
                             {copy.cta}
                         </button>
@@ -143,7 +144,7 @@ export function HUD({ activeSlide, activeEffects, toggleEffect }: { activeSlide:
                 </div>
             </div>
 
-            {/* Effects panel — visible only on ThreeJS slides */}
+            {/* Effects panel */}
             {isThreeJS && (
                 <EffectsPanel
                     activeEffects={activeEffects}
@@ -231,7 +232,7 @@ export function HUD({ activeSlide, activeEffects, toggleEffect }: { activeSlide:
                 </div>
             )}
 
-            {/* Custom IDE-style code panel */}
+            {/* Code panel */}
             {copy.code && (
                 <div
                     className={`sc-panel ${isVisible ? 'sc-visible' : 'sc-hidden'}`}

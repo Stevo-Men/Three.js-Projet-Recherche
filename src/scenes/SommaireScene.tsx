@@ -10,7 +10,7 @@ export function SommaireScene() {
 
     useFrame((state, _delta) => {
         if (groupRef.current) {
-            // Subtle floating effect
+
             groupRef.current.position.y = Math.sin(state.clock.elapsedTime * 0.5) * 0.1;
         }
     });

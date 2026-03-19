@@ -3,11 +3,13 @@ import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 
 // ─── Scrolling wireframe ground ───────────────────────────────────────────────
-export function WireframeGround({ color }: { color: string }) {
+export function WireframeGround({ color, isMoving = true }: { color: string, isMoving?: boolean }) {
     const groundRef = useRef<THREE.Mesh<any, any>>(null);
+    const movingRef = useRef(isMoving);
+    movingRef.current = isMoving;
 
     useFrame((_state, delta) => {
-        if (groundRef.current) {
+        if (groundRef.current && movingRef.current) {
             groundRef.current.position.x -= delta * 5.0;
             if (groundRef.current.position.x <= -0.5) groundRef.current.position.x += 0.5;
         }

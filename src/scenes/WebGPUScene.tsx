@@ -10,7 +10,7 @@ const HX = SLIDES[5].hx; // '#bb44ff'
 
 export function WebGPUScene() {
 
-    // 4×4 GPU grid — same layout as WebGLScene
+    // 4×4 GPU grid 
     const gpuPositions = useMemo(() => {
         const cols = 4, rows = 4, spacingX = 0.70, spacingZ = 0.65;
         const out: THREE.Vector3[] = [];
@@ -24,7 +24,7 @@ export function WebGPUScene() {
         return out;
     }, []);
 
-    // 4 CPUs and 4 Lozenges (2x2 grid)
+    // 4 CPUs and 4 Lozenges
     const cpuPositions = useMemo(() => {
         const spacingX = 0.70, spacingZ = 0.65;
         return [
@@ -45,19 +45,18 @@ export function WebGPUScene() {
         ];
     }, []);
 
-    // ── Horizontal GPU↔GPU inter-connections (Storage Buffer loops) ────────
+    //   GPU↔GPU segments
     const gpuLinks = useMemo(() => {
         const links: { from: number; to: number }[] = [];
         const cols = 4, rows = 4;
         for (let i = 0; i < cols; i++) {
             for (let j = 0; j < rows; j++) {
                 const idx = i * rows + j;
-                // right neighbour
+
                 if (i < cols - 1) {
                     const nIdx = (i + 1) * rows + j;
                     links.push({ from: idx, to: nIdx });
                 }
-                // bottom neighbour
                 if (j < rows - 1) {
                     const nIdx = i * rows + (j + 1);
                     links.push({ from: idx, to: nIdx });
@@ -67,7 +66,7 @@ export function WebGPUScene() {
         return links;
     }, []);
 
-    // ── Fast packets flowing GPU↔GPU ───────────────────────────────────────
+    //   Packets flowing GPU↔GPU
     const [gpuPackets] = useState(() => {
         return gpuLinks.map(() => ({
             speed: 0.55 + Math.random() * 0.7,
@@ -78,12 +77,12 @@ export function WebGPUScene() {
     return (
         <group position={[30, 0, 0]}>
 
-            {/* ── 4 CPUs ── */}
+            {/* 4 CPUs */}
             {cpuPositions.map((pos, i) => (
                 <WebGPUCpu key={`cpu-${i}`} position={pos} hx={HX} />
             ))}
 
-            {/* ── 4 Command Streams (CPU -> Lozenge -> GPU) ── */}
+            {/* 4 Command Streams (CPU -> Lozenge -> GPU) */}
             {cpuPositions.map((cpuPos, i) => (
                 <WebGPUCommandStream
                     key={`stream-${i}`}
@@ -95,7 +94,7 @@ export function WebGPUScene() {
                 />
             ))}
 
-            {/* ── Fast GPU↔GPU inter-links and data packets ── */}
+            {/* ── GPU↔GPU segments ── */}
             {gpuLinks.map((link, i) => (
                 <WebGPULink
                     key={`link-${i}`}
@@ -107,7 +106,7 @@ export function WebGPUScene() {
                 />
             ))}
 
-            {/* ── GPU worker cubes — autonomous, active ── */}
+            {/* GPU worker cubes */}
             {gpuPositions.map((pos, i) => (
                 <WebGPUWorker
                     key={`worker-${i}`}
@@ -121,7 +120,7 @@ export function WebGPUScene() {
     );
 }
 
-// Helper component to manage the logic/lines for one CPU/Lozenge -> 4 GPUs cluster
+
 function WebGPUCommandStream({
     cpuPos, lozPos, gpuNodes, hx, index
 }: {
@@ -135,7 +134,6 @@ function WebGPUCommandStream({
     const cpuPacketRef = useRef<THREE.Mesh<any, any>>(null);
     const gpuPacketsRef = useRef<(THREE.Mesh | null)[]>([]);
 
-    // We add a slight offset per cluster so they don't fire exactly identically, looking more independent
     const progress = useRef(index * 0.25);
 
     const cpuLine = useMemo(() => {
@@ -145,7 +143,7 @@ function WebGPUCommandStream({
     }, [cpuPos, lozPos, hx]);
 
     const gpuCenterLine = useMemo(() => {
-        // Single line from lozenge to the centroid of the 4 GPU workers
+
         const center = gpuNodes.reduce(
             (acc, v) => acc.clone().add(v),
             new THREE.Vector3()
@@ -161,7 +159,7 @@ function WebGPUCommandStream({
             lozangeRef.current.rotation.x += delta * 0.6;
         }
 
-        // 2-phase cycle: 0->1 (CPU to Lozange), 1->2 (Lozange to GPUs)
+
         progress.current = (progress.current + delta * 0.4) % 2;
         const p = progress.current;
 

@@ -16,7 +16,7 @@ import { ThreeJSScene } from './scenes/ThreeJSScene';
 import { AvenirScene } from './scenes/AvenirScene';
 import { SCENE_CAMS, SLIDES, SCENE_OFFSETS } from './data';
 
-// ─── Camera Manager ──────────────────────────────────────────────────────────
+//  Camera Manager
 function CameraManager({ activeSlide }: { activeSlide: number }) {
     const vec = new THREE.Vector3();
     const targetVec = new THREE.Vector3();
@@ -42,7 +42,7 @@ function CameraManager({ activeSlide }: { activeSlide: number }) {
 }
 
 
-// ─── Background Dust ──────────────────────────────────────────────────────────
+//  Background Dust
 function BackgroundDust() {
     const pointsRef = useRef<THREE.Points>(null);
     const { positions } = React.useMemo(() => {
@@ -71,7 +71,7 @@ function BackgroundDust() {
     );
 }
 
-// ─── Post Effects (conditionally active on ThreeJS slides only) ───────────────
+//  Post Effects 
 function PostEffects({ fx, isThreeJS }: { fx: Record<string, boolean>; isThreeJS: boolean }) {
     if (!isThreeJS) return null;
 
@@ -100,7 +100,7 @@ function PostEffects({ fx, isThreeJS }: { fx: Record<string, boolean>; isThreeJS
     );
 }
 
-// ─── Experience ───────────────────────────────────────────────────────────────
+//  Experience
 export function Experience({ activeSlide, activeEffects }: { activeSlide: number; activeEffects: Record<string, boolean> }) {
     const isThreeJS = SLIDES[activeSlide]?.sceneId === 4;
 
